@@ -7,8 +7,6 @@ import sys  # used to end the program
 import profiles_logic  # contains the profile logic
 import config
 
-
-#provafmjwksnfowen
 # Define root
 root = ThemedTk()
 root.title("Guarda Sagra")  # Root window title
