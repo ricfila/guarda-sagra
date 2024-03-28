@@ -51,7 +51,7 @@ def create_profiles_logic_window(root, callback):
     password_from_db = cursor.fetchall() # TODO integrare funzioni di hashing con salting per non avere funzioni salvate in chiaro su DB.
     conn.close()
     '''
-    profiles.append('Admin')  # Add to profile choice the admin option.
+    profiles.append('Admin')  # Add to profile choice the admin option. #TODO differenzia bottone admin dai normali, e mettilo sempre a capo. inoltre, 2 tipi di admin
 
     for i, profile in enumerate(profiles):  # Inserts profile choice buttons
         (ttk.Button(profiles_logic_window,

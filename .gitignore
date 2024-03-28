@@ -290,3 +290,4 @@ pyrightconfig.json
 
 # Application configuration folder
 .configs/
+help_code/
