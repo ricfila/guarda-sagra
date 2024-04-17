@@ -1,7 +1,17 @@
+
+CREATE TABLE "aree" (
+  "id" INTEGER NOT NULL,
+  "nome" CHARACTER VARYING(32),
+  "coperto" NUMERIC(10, 2),
+  "asporto" NUMERIC(10, 2),
+  PRIMARY KEY ("id")
+);
+
 CREATE TABLE "articoli" (
   "id" INTEGER NOT NULL,
   "nome" CHARACTER VARYING(64),
-  "nome_breve" CHARACTER VARYING(16),
+  "nome_breve" CHARACTER VARYING(32),
+  "tipologia" INTEGER NOT NULL,
   "prezzo" NUMERIC(10, 2),
   "copia_cliente" BOOLEAN,
   "copia_cucina" BOOLEAN,
@@ -27,32 +37,23 @@ CREATE TABLE "articoli_listini" (
   "articolo" INTEGER NOT NULL,
   "listino" INTEGER NOT NULL,
   "posizione" INTEGER,
-  "tipologia" INTEGER NOT NULL,
   "sfondo" INTEGER,
   "visibile" BOOLEAN,
   PRIMARY KEY ("articolo", "listino")
 );
 
-CREATE TABLE "casse" (
-  "id" INTEGER NOT NULL,
-  "nome" CHARACTER VARYING(16),
-  "area" CHARACTER VARYING(16),
-  "password" CHARACTER VARYING(128),
-  "arrotonda" NUMERIC(4,2),
-  PRIMARY KEY ("id")
-);
-
-CREATE TABLE "configurazione" (
-  "nome_sagra" CHARACTER VARYING(64),
-  "coperto" NUMERIC(10, 2),
-  "asporto" NUMERIC(10, 2),
-  "password" CHARACTER VARYING(128)
+CREATE TABLE "casse_listini" (
+  "cassa" INTEGER NOT NULL,
+  "listino" INTEGER NOT NULL,
+  "data_inizio" DATE,
+  "data_fine" DATE,
+  PRIMARY KEY ("cassa", "listino")
 );
 
 CREATE TABLE "ingredienti" (
   "id" INTEGER NOT NULL,
   "nome" CHARACTER VARYING(64),
-  "nome_breve" CHARACTER VARYING(16),
+  "nome_breve" CHARACTER VARYING(32),
   "settore" CHARACTER VARYING(16),
   "visibile" BOOLEAN,
   PRIMARY KEY ("id")
@@ -62,14 +63,6 @@ CREATE TABLE "listini" (
   "id" INTEGER NOT NULL,
   "nome" CHARACTER VARYING(64),
   PRIMARY KEY ("id")
-);
-
-CREATE TABLE "listini_casse" (
-  "cassa" INTEGER NOT NULL,
-  "listino" INTEGER NOT NULL,
-  "data_inizio" DATE,
-  "data_fine" DATE,
-  PRIMARY KEY ("cassa", "listino")
 );
 
 CREATE TABLE "ordini" (
@@ -96,6 +89,16 @@ CREATE TABLE "passaggi_stato" (
   "ora" TIME,
   "agente" CHARACTER VARYING(32),
   PRIMARY KEY ("ordine", "stato")
+);
+
+CREATE TABLE "profili" (
+  "id" INTEGER NOT NULL,
+  "nome" CHARACTER VARYING(16),
+  "admin" INTEGER,
+  "area" INTEGER,
+  "password" CHARACTER VARYING(128),
+  "arrotonda" NUMERIC(4,2),
+  PRIMARY KEY ("id")
 );
 
 CREATE TABLE "righe_articoli" (
@@ -126,7 +129,7 @@ CREATE TABLE "righe_sconto" (
 CREATE TABLE "sconti" (
   "id" INTEGER NOT NULL,
   "nome" CHARACTER VARYING(64),
-  "nome_breve" CHARACTER VARYING(16),
+  "nome_breve" CHARACTER VARYING(32),
   "valore" NUMERIC(10, 2),
   "da_numero" NUMERIC(10, 0),
   "a_numero" NUMERIC(10, 0),
@@ -157,6 +160,7 @@ CREATE TABLE "stati" (
   "posizione" INTEGER,
   "nome" CHARACTER VARYING(16),
   "attesaTavolo" BOOLEAN,
+  --"tipologia" INTEGER, --meglio un collegamento N-N
   PRIMARY KEY ("id")
 );
 
@@ -164,53 +168,48 @@ CREATE TABLE "tipi_pagamento" (
   "id" INTEGER NOT NULL,
   "nome" CHARACTER VARYING(16),
   "posizione" INTEGER,
+  "visibile" BOOLEAN,
   PRIMARY KEY ("id")
 );
 
 CREATE TABLE "tipologie" (
   "id" INTEGER NOT NULL,
   "nome" CHARACTER VARYING(64),
+  "posizione" INTEGER,
   "sfondo" INTEGER,
   "visibile" BOOLEAN,
   PRIMARY KEY ("id")
 );
 
-ALTER TABLE "articoli_ingredienti" ADD FOREIGN KEY ("articolo") REFERENCES "articoli" ("id");
+ALTER TABLE "articoli" ADD FOREIGN KEY ("tipologia") REFERENCES "tipologie" ("id");
 
+ALTER TABLE "articoli_ingredienti" ADD FOREIGN KEY ("articolo") REFERENCES "articoli" ("id");
 ALTER TABLE "articoli_ingredienti" ADD FOREIGN KEY ("ingrediente") REFERENCES "ingredienti" ("id");
 
-ALTER TABLE "righe_articoli" ADD FOREIGN KEY ("ordine") REFERENCES "ordini" ("id");
+ALTER TABLE "articoli_listini" ADD FOREIGN KEY ("articolo") REFERENCES "articoli" ("id");
+ALTER TABLE "articoli_listini" ADD FOREIGN KEY ("listino") REFERENCES "listini" ("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE "righe_ingredienti" ADD FOREIGN KEY ("riga_articolo") REFERENCES "righe_articoli" ("id");
+ALTER TABLE "profili" ADD FOREIGN KEY ("area") REFERENCES "aree" ("id");
 
-ALTER TABLE "righe_sconto" ADD FOREIGN KEY ("ordine") REFERENCES "ordini" ("id");
+ALTER TABLE "casse_listini" ADD FOREIGN KEY ("cassa") REFERENCES "profili" ("id");
+ALTER TABLE "casse_listini" ADD FOREIGN KEY ("listino") REFERENCES "listini" ("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE "ordini" ADD FOREIGN KEY ("cassa") REFERENCES "casse" ("id");
+ALTER TABLE "ordini" ADD FOREIGN KEY ("cassa") REFERENCES "profili" ("id");
+ALTER TABLE "ordini" ADD FOREIGN KEY ("tipo_pagamento") REFERENCES "tipi_pagamento" ("id") ON UPDATE CASCADE;
 
-ALTER TABLE "righe_articoli" ADD FOREIGN KEY ("articolo") REFERENCES "articoli" ("id");
-
-ALTER TABLE "righe_sconto" ADD FOREIGN KEY ("sconto") REFERENCES "sconti" ("id");
-
-ALTER TABLE "ordini" ADD FOREIGN KEY ("tipo_pagamento") REFERENCES "tipi_pagamento" ("id");
-
-ALTER TABLE "righe_ingredienti" ADD FOREIGN KEY ("ingrediente") REFERENCES "ingredienti" ("id");
-
-ALTER TABLE "passaggi_stato" ADD FOREIGN KEY ("ordine") REFERENCES "ordini" ("id");
-
+ALTER TABLE "passaggi_stato" ADD FOREIGN KEY ("ordine") REFERENCES "ordini" ("id") ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE "passaggi_stato" ADD FOREIGN KEY ("stato") REFERENCES "stati" ("id");
 
-ALTER TABLE "scorte" ADD FOREIGN KEY ("ingrediente") REFERENCES "ingredienti" ("id");
+ALTER TABLE "righe_articoli" ADD FOREIGN KEY ("ordine") REFERENCES "ordini" ("id") ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE "righe_articoli" ADD FOREIGN KEY ("articolo") REFERENCES "articoli" ("id");
 
-ALTER TABLE "listini_casse" ADD FOREIGN KEY ("cassa") REFERENCES "casse" ("id");
+ALTER TABLE "righe_ingredienti" ADD FOREIGN KEY ("riga_articolo") REFERENCES "righe_articoli" ("id");
+ALTER TABLE "righe_ingredienti" ADD FOREIGN KEY ("ingrediente") REFERENCES "ingredienti" ("id");
 
-ALTER TABLE "listini_casse" ADD FOREIGN KEY ("listino") REFERENCES "listini" ("id");
-
-ALTER TABLE "articoli_listini" ADD FOREIGN KEY ("articolo") REFERENCES "articoli" ("id");
-
-ALTER TABLE "articoli_listini" ADD FOREIGN KEY ("listino") REFERENCES "listini" ("id");
-
-ALTER TABLE "articoli_listini" ADD FOREIGN KEY ("tipologia") REFERENCES "tipologie" ("id");
+ALTER TABLE "righe_sconto" ADD FOREIGN KEY ("ordine") REFERENCES "ordini" ("id") ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE "righe_sconto" ADD FOREIGN KEY ("sconto") REFERENCES "sconti" ("id");
 
 ALTER TABLE "sconti_listini" ADD FOREIGN KEY ("sconto") REFERENCES "sconti" ("id");
+ALTER TABLE "sconti_listini" ADD FOREIGN KEY ("listino") REFERENCES "listini" ("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE "sconti_listini" ADD FOREIGN KEY ("listino") REFERENCES "listini" ("id");
+ALTER TABLE "scorte" ADD FOREIGN KEY ("ingrediente") REFERENCES "ingredienti" ("id");

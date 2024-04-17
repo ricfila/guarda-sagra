@@ -6,6 +6,8 @@ from tkinter import messagebox
 import sys  # used to end the program
 import profiles_logic  # contains the profile logic
 import config
+import threading
+from flask_api import demone
 
 class Main_window(tk.Tk):
     def __init__(self, title, size):
@@ -83,7 +85,10 @@ class Entry(ttk.Frame):
 
         self.pack(side='left', expand=True, fill='both', padx=20, pady=20)
 
-global profile
+
+x = threading.Thread(target=demone, daemon=True)
+x.start()
+
 profiles_logic.Profiles_window('Guarda Sagra', (600, 600))
 
 
