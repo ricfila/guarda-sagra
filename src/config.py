@@ -1,31 +1,39 @@
 import configparser
 import os
 
-# Verrà usato per gestire preferenze e configurazioni. copia incolla da internet da tenere come esempio.
-# Dal secondo commento in poi, fatto ad hoc
-
 config = configparser.ConfigParser()
-config['DEFAULT'] = dict(ServerAliveInterval='45', Compression='yes', CompressionLevel='9')
-config['forge.example'] = {}
-config['forge.example']['User'] = 'hg'
-config['topsecret.server.example'] = {}
 
-topsecret = config['topsecret.server.example']
-topsecret['Port'] = '50022'  # mutates the parser
-topsecret['ForwardX11'] = 'no'  # same here
 
-config['DEFAULT']['ForwardX11'] = 'yes'
+def init():
+    # Crea la cartella .configs e il file configs.ini se non esistono
+    configs_folder_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")), ".configs")
+    if not os.path.exists(configs_folder_path):  # Create configs directory
+        os.makedirs(configs_folder_path)
+    config_file_path = os.path.join(configs_folder_path, 'configs.ini')
+    if not os.path.exists(config_file_path):
+        open(config_file_path, 'x')
 
-#gestione file di configurazioni
-configs_folder_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")), ".configs")
+    # Importa le impostazioni dal file
+    config.read(config_file_path)
 
-if not os.path.exists(configs_folder_path):  # Create configs directory
-    os.makedirs(configs_folder_path)
+    # Aggiunge impostazioni di default se non erano presenti nel file
+    sezioni = {"PostgreSQL": {"server": "localhost",
+                              "port": 5432,
+                              "database": "gs",
+                              "username": "postgres",
+                              "password": "pwd"},
+               "SQLite": {"enabled": "true"}
+               }
 
-config_file_path = os.path.join(configs_folder_path, 'configs.ini')
+    for k, v in sezioni.items():
+        if (k not in config.sections()
+                or any(key not in config[k] for key in v.keys())):
+            config[k] = v
 
-with open(config_file_path, 'w') as configfile:  # Create configs.ini file
+    # Salva tutte le impostazioni (vecchie e nuove) su file
+    configfile = open(config_file_path, 'w')
     config.write(configfile)
+
 
 ''' #ESEMPIO LETTURA DA CONFIG
 config = configparser.ConfigParser()

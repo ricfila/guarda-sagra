@@ -291,3 +291,5 @@ pyrightconfig.json
 # Application configuration folder
 .configs/
 help_code/
+dblite.db
+dblite.db-journal

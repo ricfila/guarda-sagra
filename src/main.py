@@ -7,7 +7,8 @@ import sys  # used to end the program
 import profiles_logic  # contains the profile logic
 import config
 import threading
-from flask_api import demone
+from api import demone
+
 
 class Main_window(tk.Tk):
     def __init__(self, title, size):
@@ -86,11 +87,14 @@ class Entry(ttk.Frame):
         self.pack(side='left', expand=True, fill='both', padx=20, pady=20)
 
 
+# Inizializza le configurazioni
+config.init()
+
+# Avvio thread demone per chiamate api
 x = threading.Thread(target=demone, daemon=True)
 x.start()
 
 profiles_logic.Profiles_window('Guarda Sagra', (600, 600))
-
 
 '''
 def main():
