@@ -4,52 +4,27 @@ from tkinter import ttk
 from tkinter import messagebox
 from ttkthemes import ThemedTk
 import psycopg2  # used for postgresql queries
+from main import main
+def open_profiles_window(title, size):
+    profiles_window = tk.Tk()
+    profiles_window.title(title)
+    profiles_window.geometry(f'{size[0]}x{size[1]}')
+    profiles_window.minsize(size[0], size[1])
+    frame = ttk.Frame(profiles_window)
+    profiles_choice(profiles_window, frame)
+
+    initial_text = ttk.Label(profiles_window, text='Scegli un profilo:')
+    quit_button = ttk.Button(profiles_window, text="Esci", command=lambda: profiles_window.destroy())
+
+    initial_text.pack()
+    frame.pack()
+    quit_button.place(anchor = 'se', relx = 0.98, rely = 0.98)
+
+    profiles_window.mainloop()
 
 
-class Profiles_window(tk.Tk):  # Creates the profile choice window
-    def __init__(self, title, size):
-        super().__init__()
-        self.title(title)
-        self.geometry(f'{size[0]}x{size[1]}')
 
-        initial_text = ttk.Label(self, text='Scegli un profilo:')
-
-        frame = ttk.Frame(self)
-        frame.columnconfigure((0, 1, 2, 3), weight=1, uniform='a')
-        profiles_choice(frame)
-
-        quit_box = ttk.Frame(self)
-        quit_row(quit_box, self)
-
-        initial_text.pack()
-        frame.pack()
-        quit_box.pack(side=BOTTOM)
-
-        self.mainloop()
-
-class Password_window(tk.Toplevel):
-    def __init__(self, profile):
-        super().__init__()
-        self.title('Inserire la password')
-        user_text = ttk.Label(self, text=f'Profilo: {profile}')
-        password = tk.StringVar()
-        password_field = ttk.Entry(self, textvariable=password)
-        button_frame = ttk.Frame(self)
-        login_button = ttk.Button(button_frame, text="Accedi", command=lambda: password_confirm(profile, password))
-        cancel_button = ttk.Button(button_frame, text="Annulla", command=lambda: self.destroy())
-
-        user_text.pack(expand=True, padx=5, pady=5)
-        password_field.pack(expand=True, padx=5, pady=5)
-        button_frame.pack(expand=True, padx=5, pady=5)
-
-        login_button.pack(side=LEFT, padx=5, pady=5)
-        cancel_button.pack(side=LEFT, padx=5, pady=5)
-
-def quit_row(self, parent):
-    quit_button = ttk.Button(self,text="Esci", command=lambda: parent.destroy())
-    quit_button.pack(side=RIGHT, padx=5, pady=5)
-
-def profiles_choice(self):
+def profiles_choice(profiles_window, frame):
     profiles = ['Cassa 1', 'Cassa 2', 'Cassa 3', 'Cassa 4']  # TODO
     '''
     # Connect to DB and load profile names
@@ -65,35 +40,50 @@ def profiles_choice(self):
     password_from_db = cursor.fetchall() # TODO integrare funzioni di hashing con salting per non avere funzioni salvate in chiaro su DB.
     conn.close()
     '''
-    profiles.append('Admin')  # Add to profile choice the admin option. #TODO differenzia bottone admin dai normali, e mettilo sempre a capo. inoltre, 2 tipi di admin
+    profiles.append('Admin')  # Add to profile choice the admin option. #TODO 2 tipi di admin?
 
     for i, profile in enumerate(profiles):  # Inserts profile choice buttons
-        ttk.Button(self,
+        ttk.Button(frame,
                    text=profile,
-                   command=lambda profile=profile: selected_profile(profile)).grid(row=i // 4,
+                   command=lambda profile=profile: profile_selection(profiles_window, profile)).grid(row=i // 4,
                                                                                    column=i % 4,
                                                                                    padx=5,
                                                                                    pady=5)
-    return self
 
-
-def selected_profile(profile):
+def profile_selection(profiles_window, profile):
     if profile == 'Admin':
-        Password_window(profile)
+        open_login_window(profiles_window, profile)
     else:
-        login(profile)
+        profiles_window.destroy()
+        main(profile)
 
+def open_login_window(profiles_window, profile):
+    login_window = tk.Toplevel()
+    login_window.title('Inserire la password')
+    password = tk.StringVar()
 
-def password_confirm(profile, password):
+    user_text = ttk.Label(login_window, text=f'Profilo: {profile}')
+    password_field = ttk.Entry(login_window, textvariable=password)
+
+    buttons_frame = ttk.Frame(login_window)
+    login_button = ttk.Button(buttons_frame, text="Accedi", command=lambda: password_confirm(profiles_window, profile, password))
+    cancel_button = ttk.Button(buttons_frame, text="Annulla", command=lambda: login_window.destroy())
+
+    user_text.pack(expand=True, padx=5, pady=5)
+    password_field.pack(expand=True, padx=5, pady=5)
+    buttons_frame.pack(expand=True, padx=5, pady=5)
+    login_button.pack(side=LEFT, padx=5, pady=5)
+    cancel_button.pack(side=LEFT, padx=5, pady=5)
+
+def password_confirm(profiles_window, profile, password):
     entered_password = password.get()
     if entered_password == "p":  # TODO vedi variabile password_from_db
+        profiles_window.destroy()
+        main(profile)
 
-        login(profile, password)
+
     elif entered_password == "":
         messagebox.showerror('Errore', 'Inserire la password nel campo apposito per proseguire.')
     else:
         messagebox.showerror('Errore', 'Password errata.')
 
-def login(profile, password = None):
-    #TODO se c'è una password, chiama il DB per controllare. Poi:
-    pass
