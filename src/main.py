@@ -8,15 +8,15 @@ import profiles_logic  # contains the profile logic
 import main_window
 import config
 import threading
-from api import demone
+import api
 
 def main(chosen_profile):
     # Inizializza le configurazioni
     config.init()
 
     # Avvio thread demone per chiamate api
-    x = threading.Thread(target=demone, daemon=True)
-    x.start()
+    thread = threading.Thread(target=api.init_thread, daemon=True)
+    thread.start()
 
     if chosen_profile is None:
         profiles_logic.open_profiles_window('Guarda Sagra', (400, 300))
