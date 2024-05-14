@@ -6,12 +6,72 @@ from tkinter import messagebox
 import sys  # used to end the program
 import config
 class Main_window(tk.Tk):
-    def __init__(self, title, profile):
+    def __init__(self, profile):
+        print(profile) #TODO inserire le modifiche date dalla scelta profilo
         super().__init__()
-        self.title(title)
-        self.menu = Menu(self)
-        self.frame1 = Frame1(self)
-        self.mainloop()
+        self.title('Guarda Sagra')
+        self.state('zoomed') # Apre la finestra massimizzata
+        self.draw_notebook(profile) #TODO forse da rivedere
+        #self.menu = Menu(self)
+        #self.frame1 = Frame1(self)
+
+    def draw_notebook(self, profile):
+        notebook = ttk.Notebook(self)
+        #TODO inserisci quì parti condivise tra tutti i profili
+        #TODO parte_condivisa = self.create_tab(notebook, "Condivisa")
+        if profile == 'Admin':
+            tab_listini = self.create_tab(notebook, "Listini")
+            esempio_label1 = ttk.Label(tab_listini, text='Aperto il tab listini')
+            esempio_label1.pack()
+
+            tab_ingredienti = self.create_tab(notebook, "Ingredienti")
+            esempio_label2 = ttk.Label(tab_ingredienti, text='Aperto il tab ingredienti')
+            esempio_label2.pack()
+
+            tab_tipologie = self.create_tab(notebook, "Tipologie")
+            esempio_label3 = ttk.Label(tab_tipologie, text='Aperto il tab Tipologie')
+            esempio_label3.pack()
+
+            tab_sconti = self.create_tab(notebook, "Sconti")
+            esempio_label4 = ttk.Label(tab_sconti, text='Aperto il tab Sconti')
+            esempio_label4.pack()
+
+            tab_profili = self.create_tab(notebook, "Profili")
+            esempio_label5 = ttk.Label(tab_profili, text='Aperto il tab Profili')
+            esempio_label5.pack()
+
+            tab_stati = self.create_tab(notebook, "Stati")
+            esempio_label6 = ttk.Label(tab_stati, text='Aperto il tab Stati')
+            esempio_label6.pack()
+
+            tab_tipo_pagamento = self.create_tab(notebook, "Tipo Pagamento")
+            esempio_label7 = ttk.Label(tab_tipo_pagamento, text='Aperto il tab Tipo Pagamento')
+            esempio_label7.pack()
+
+            tab_statistiche_generali = self.create_tab(notebook, "Statistiche Generali")
+            esempio_label8 = ttk.Label(tab_statistiche_generali, text='Aperto il tab Statistiche Generali')
+            esempio_label8.pack()
+        else:
+            tab_avanzamento_stati = self.create_tab(notebook, "Avanzamento Stati")
+            esempio_label1 = ttk.Label(tab_avanzamento_stati, text='Aperto il tab Avanzamento Stati')
+            esempio_label1.pack()
+
+            # Example 2: Scorte
+            tab_scorte = self.create_tab(notebook, "Scorte")
+            esempio_label2 = ttk.Label(tab_scorte, text='Aperto il tab Scorte')
+            esempio_label2.pack()
+
+            # Example 3: Chiusura Cassa
+            tab_chiusura_cassa = self.create_tab(notebook, "Chiusura Cassa")
+            esempio_label3 = ttk.Label(tab_chiusura_cassa, text='Aperto il tab Chiusura Cassa')
+            esempio_label3.pack()
+
+        notebook.pack(expand=True, fill="both")
+
+    def create_tab(self, notebook, title):
+        tab = ttk.Frame(notebook)
+        notebook.add(tab, text=title)
+        return tab
 
 
 class Menu(ttk.Frame):
