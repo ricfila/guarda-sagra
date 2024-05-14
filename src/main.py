@@ -8,7 +8,7 @@ import profiles_logic  # contains the profile logic
 import main_window
 import config
 import threading
-from api import demone
+import api
 
 def main(chosen_profile):
     if chosen_profile is None:
@@ -23,8 +23,8 @@ if __name__ == "__main__":  # Starts the event loop for the main window
     config.init()
 
     # Avvio thread demone per chiamate api
-    x = threading.Thread(target=demone, daemon=True)
-    x.start()
+    thread = threading.Thread(target=api.init_thread, daemon=True)
+    thread.start()
 
     main(None)
 
