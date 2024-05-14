@@ -11,6 +11,14 @@ import threading
 from api import demone
 
 def main(chosen_profile):
+    if chosen_profile is None:
+        profiles_logic.open_profiles_window('Guarda Sagra', (400, 300))
+    else:
+        main_app = main_window.Main_window(chosen_profile)
+        main_app.mainloop()
+
+
+if __name__ == "__main__":  # Starts the event loop for the main window
     # Inizializza le configurazioni
     config.init()
 
@@ -18,13 +26,6 @@ def main(chosen_profile):
     x = threading.Thread(target=demone, daemon=True)
     x.start()
 
-    if chosen_profile is None:
-        profiles_logic.open_profiles_window('Guarda Sagra', (400, 300))
-    else:
-        main_window.Main_window('Guarda Sagra', chosen_profile)
-
-
-if __name__ == "__main__":  # Starts the event loop for the main window
     main(None)
 
 '''
