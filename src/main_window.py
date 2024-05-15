@@ -11,9 +11,9 @@ class Main_window(tk.Tk):
         super().__init__()
         self.title('Guarda Sagra')
         self.state('zoomed') # Apre la finestra massimizzata
-        self.draw_notebook(profile) #TODO forse da rivedere
-        #self.menu = Menu(self)
-        #self.frame1 = Frame1(self)
+        self.draw_notebook(profile) # TODO forse da rivedere
+        # self.menu = Menu(self)
+        # self.frame1 = Frame1(self)
 
     def draw_notebook(self, profile):
         notebook = ttk.Notebook(self)

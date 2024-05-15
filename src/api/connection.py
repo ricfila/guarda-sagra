@@ -2,6 +2,7 @@ import sqlite3
 import psycopg2
 import threading
 from config import config
+import os
 
 # Usa un oggetto threading.local per mantenere una connessione per ogni thread
 _thread_locals = threading.local()
@@ -22,13 +23,14 @@ def get_connection():
 
 def create_connection():
     cur = get_connection().cursor()
-
+    path_to_sqlite_db = os.path.join(os.getcwd(), "guarda-sagra-sqlite.sql")
+    path_to_postgres_db = os.path.join(os.getcwd(), "guarda-sagra-postgres.sql")
     # Eventuale creazione delle tabelle
     if config['SQLite']['enabled'] == "true":
-        with open("../guarda-sagra-sqlite.sql") as f:
+        with open(path_to_sqlite_db) as f:
             cur.executescript(f.read())
     else:
-        with open("../guarda-sagra-postgres.sql") as f:
+        with open(path_to_postgres_db) as f:
             cur.execute(f.read())
 
     # Se non è presente un utente admin ne crea uno, con nome admin e password admin
