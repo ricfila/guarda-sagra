@@ -11,7 +11,7 @@ def get_connection():
     # Se non c'è una connessione associata a questo thread, creane una
     if not hasattr(_thread_locals, 'connection'):
         if config['SQLite']['enabled'] == "true" or config['SQLite']['enabled'] == "True":
-            _thread_locals.connection = sqlite3.connect("../dblite.db")
+            _thread_locals.connection = sqlite3.connect("dblite.db")
         else:
             _thread_locals.connection = psycopg2.connect(database=config['PostgreSQL']['database'],
                                     host=config['PostgreSQL']['server'],

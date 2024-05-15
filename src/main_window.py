@@ -11,68 +11,75 @@ class Main_window(tk.Tk):
         super().__init__()
         self.title('Guarda Sagra')
         self.state('zoomed') # Apre la finestra massimizzata
-        self.draw_notebook(profile) # TODO forse da rivedere
+        self.draw_tabs(profile) # TODO forse da rivedere
+        self.create_menu()
         # self.menu = Menu(self)
         # self.frame1 = Frame1(self)
 
-    def draw_notebook(self, profile):
+    def draw_tabs(self, profile):
         notebook = ttk.Notebook(self)
         #TODO inserisci quì parti condivise tra tutti i profili
         #TODO parte_condivisa = self.create_tab(notebook, "Condivisa")
         if profile == 'Admin':
-            tab_listini = self.create_tab(notebook, "Listini")
-            esempio_label1 = ttk.Label(tab_listini, text='Aperto il tab listini')
-            esempio_label1.pack()
-
-            tab_ingredienti = self.create_tab(notebook, "Ingredienti")
-            esempio_label2 = ttk.Label(tab_ingredienti, text='Aperto il tab ingredienti')
-            esempio_label2.pack()
-
-            tab_tipologie = self.create_tab(notebook, "Tipologie")
-            esempio_label3 = ttk.Label(tab_tipologie, text='Aperto il tab Tipologie')
-            esempio_label3.pack()
-
-            tab_sconti = self.create_tab(notebook, "Sconti")
-            esempio_label4 = ttk.Label(tab_sconti, text='Aperto il tab Sconti')
-            esempio_label4.pack()
-
-            tab_profili = self.create_tab(notebook, "Profili")
-            esempio_label5 = ttk.Label(tab_profili, text='Aperto il tab Profili')
-            esempio_label5.pack()
-
-            tab_stati = self.create_tab(notebook, "Stati")
-            esempio_label6 = ttk.Label(tab_stati, text='Aperto il tab Stati')
-            esempio_label6.pack()
-
-            tab_tipo_pagamento = self.create_tab(notebook, "Tipo Pagamento")
-            esempio_label7 = ttk.Label(tab_tipo_pagamento, text='Aperto il tab Tipo Pagamento')
-            esempio_label7.pack()
-
-            tab_statistiche_generali = self.create_tab(notebook, "Statistiche Generali")
-            esempio_label8 = ttk.Label(tab_statistiche_generali, text='Aperto il tab Statistiche Generali')
-            esempio_label8.pack()
+            self.draw_tab(notebook, "Listini")
+            self.draw_tab(notebook, "Ingredienti")
+            self.draw_tab(notebook, "Tipologie")
+            self.draw_tab(notebook, "Sconti")
+            self.draw_tab(notebook, "Profili")
+            self.draw_tab(notebook, "Stati")
+            self.draw_tab(notebook, "Tipo Pagamento")
+            self.draw_tab(notebook, "Statistiche Generali")
         else:
-            tab_avanzamento_stati = self.create_tab(notebook, "Avanzamento Stati")
-            esempio_label1 = ttk.Label(tab_avanzamento_stati, text='Aperto il tab Avanzamento Stati')
-            esempio_label1.pack()
-
-            # Example 2: Scorte
-            tab_scorte = self.create_tab(notebook, "Scorte")
-            esempio_label2 = ttk.Label(tab_scorte, text='Aperto il tab Scorte')
-            esempio_label2.pack()
-
-            # Example 3: Chiusura Cassa
-            tab_chiusura_cassa = self.create_tab(notebook, "Chiusura Cassa")
-            esempio_label3 = ttk.Label(tab_chiusura_cassa, text='Aperto il tab Chiusura Cassa')
-            esempio_label3.pack()
-
+            self.draw_tab(notebook, "Avanzamento Stati")
+            self.draw_tab(notebook, "Scorte")
+            self.draw_tab(notebook, "Chiusura Cassa")
         notebook.pack(expand=True, fill="both")
 
-    def create_tab(self, notebook, title):
+    def draw_tab(self, notebook, title):
         tab = ttk.Frame(notebook)
         notebook.add(tab, text=title)
-        return tab
+        esempio_label1 = ttk.Label(tab, text='Aperto il tab ' + title)
+        esempio_label1.pack()
 
+    def create_menu(self):
+        menu = tk.Menu(self)
+        file_menu = tk.Menu(menu, tearoff=False)
+        file_menu.add_command(label='New', command=lambda: print('New file'))
+        file_menu.add_command(label='Open', command=lambda: print('Open file'))
+        file_menu.add_separator()
+        menu.add_cascade(label='File', menu=file_menu)
+        '''
+        # another sub menu
+        help_menu = tk.Menu(menu, tearoff=False)
+        help_menu.add_command(label='Help entry', command=lambda: print(help_check_string.get()))
+
+        help_check_string = tk.StringVar()
+        help_menu.add_checkbutton(label='check', onvalue='on', offvalue='off', variable=help_check_string)
+
+        menu.add_cascade(label='Help', menu=help_menu)
+
+        # add another menu to the main menu, this one should have a sub menu
+        # try to read the website below and add a submenu
+        # docs: https://www.tutorialspoint.com/python/tk_menu.htm
+        exercise_menu = tk.Menu(menu, tearoff=False)
+        exercise_menu.add_command(label='exercise test 1')
+        menu.add_cascade(label='Exercise', menu=exercise_menu)
+
+        exercise_sub_menu = tk.Menu(menu, tearoff=False)
+        exercise_sub_menu.add_command(label='some more stuff')
+        exercise_menu.add_cascade(label='more stuff', menu=exercise_sub_menu)
+        '''
+        self.configure(menu=menu)
+
+        # menu button
+        menu_button = ttk.Menubutton(self, text='Menu Button')
+        menu_button.pack()
+
+        button_sub_menu = tk.Menu(menu_button, tearoff=False)
+        button_sub_menu.add_command(label='entry 1', command=lambda: print('test 1'))
+        button_sub_menu.add_checkbutton(label='check 1')
+        # menu_button.configure(menu = button_sub_menu)
+        menu_button['menu'] = button_sub_menu
 
 class Menu(ttk.Frame):
     def __init__(self, parent):
