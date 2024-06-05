@@ -7,11 +7,13 @@ import os
 # Usa un oggetto threading.local per mantenere una connessione per ogni thread
 _thread_locals = threading.local()
 
+
 def get_connection():
+    path_to_sqlite_db = os.path.join(os.getcwd(), "../dblite.db")
     # Se non c'è una connessione associata a questo thread, creane una
     if not hasattr(_thread_locals, 'connection'):
         if config['SQLite']['enabled'] == "true" or config['SQLite']['enabled'] == "True":
-            _thread_locals.connection = sqlite3.connect("dblite.db")
+            _thread_locals.connection = sqlite3.connect(path_to_sqlite_db)
         else:
             _thread_locals.connection = psycopg2.connect(database=config['PostgreSQL']['database'],
                                     host=config['PostgreSQL']['server'],
@@ -23,14 +25,14 @@ def get_connection():
 
 def create_connection():
     cur = get_connection().cursor()
-    path_to_sqlite_db = os.path.join(os.getcwd(), "guarda-sagra-sqlite.sql")
-    path_to_postgres_db = os.path.join(os.getcwd(), "guarda-sagra-postgres.sql")
+    path_to_sqlite_script = os.path.join(os.getcwd(), "../guarda-sagra-sqlite.sql")
+    path_to_postgres_script = os.path.join(os.getcwd(), "../guarda-sagra-postgres.sql")
     # Eventuale creazione delle tabelle
     if config['SQLite']['enabled'] == "true":
-        with open(path_to_sqlite_db) as f:
+        with open(path_to_sqlite_script) as f:
             cur.executescript(f.read())
     else:
-        with open(path_to_postgres_db) as f:
+        with open(path_to_postgres_script) as f:
             cur.execute(f.read())
 
     # Se non è presente un utente admin ne crea uno, con nome admin e password admin
