@@ -20,6 +20,10 @@ class Main_window(tk.Tk):
         notebook = ttk.Notebook(self)
         #TODO inserisci quì parti condivise tra tutti i profili
         #TODO parte_condivisa = self.create_tab(notebook, "Condivisa")
+
+        # Schermate condivise tra tutti i profili
+        self.draw_tab(notebook, "Cassa")
+
         if profile == 'Admin':
             self.draw_tab(notebook, "Listini")
             self.draw_tab(notebook, "Ingredienti")
@@ -33,13 +37,45 @@ class Main_window(tk.Tk):
             self.draw_tab(notebook, "Avanzamento Stati")
             self.draw_tab(notebook, "Scorte")
             self.draw_tab(notebook, "Chiusura Cassa")
+
         notebook.pack(expand=True, fill="both")
 
     def draw_tab(self, notebook, title):
         tab = ttk.Frame(notebook)
         notebook.add(tab, text=title)
-        esempio_label1 = ttk.Label(tab, text='Aperto il tab ' + title)
-        esempio_label1.pack()
+        self.draw_cassa(tab)
+
+    def draw_cassa(self, tab):
+        info_frame = ttk.Frame(tab)
+        order_frame = ttk.Frame(tab)
+        bill_frame = ttk.Frame(tab)
+        options_frame = ttk.Frame(tab)
+        choices_frame = ttk.Frame(tab)
+        label1 = ttk.Label(info_frame, text="title", background = 'red')
+        label2 = ttk.Label(order_frame, text="title", background = 'blue')
+        label3 = ttk.Label(bill_frame, text="title", background = 'green')
+        label4 = ttk.Label(options_frame, text="title", background = 'yellow')
+        label5 = ttk.Label(choices_frame, text="title", background = 'brown')
+        label1.pack(expand=True, fill='both')
+        label2.pack(expand=True, fill='both')
+        label3.pack(expand=True, fill='both')
+        label4.pack(expand=True, fill='both')
+        label5.pack(expand=True, fill='both')
+
+
+
+        # create grid
+        tab.columnconfigure((0, 1), weight=1, uniform='a')
+        tab.rowconfigure(0, weight=1, uniform='a')
+        tab.rowconfigure(1, weight=6, uniform='a')
+        tab.rowconfigure(2, weight=2, uniform='a')
+        # left menu
+        info_frame.grid(row=0, column=0, sticky='nswe')
+        order_frame.grid(row=1, column=0, sticky='nswe')
+        bill_frame.grid(row=2, column=0, sticky='nsew', columnspan=2)
+        #right menu
+        options_frame.grid(row=0, column=1, sticky='nsew')
+        choices_frame.grid(row=1, column=1, sticky='nsew')
 
     def create_menu(self):
         menu = tk.Menu(self)
