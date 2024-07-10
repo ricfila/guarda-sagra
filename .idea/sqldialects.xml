@@ -3,5 +3,9 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/guarda-sagra-postgres.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/guarda-sagra-sqlite.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/src/api/connection.py" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/api/listini.py" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/api/profili.py" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/api/tipologie.py" dialect="GenericSQL" />
   </component>
 </project>
