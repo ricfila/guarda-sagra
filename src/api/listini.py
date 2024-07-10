@@ -17,7 +17,7 @@ def get_listini_cassa(cassa):
 
 # Restituisce la lista di articoli associati al listino, ordinati secondo il campo "posizione" in articoli_listini
 @bp.get('/articoli_listino/<int:listino>')
-def get_listini_cassa(listino):
+def get_articoli_listino(listino):
     cur = get_connection().cursor()
     cur.execute("""SELECT articoli.id, articoli.nome, articoli.nome_breve, articoli.tipologia, articoli.prezzo, articoli_listini.sfondo
                 FROM articoli_listini JOIN articoli ON articoli_listini.articolo = articoli.id
@@ -29,7 +29,7 @@ def get_listini_cassa(listino):
 # Restituisce la lista di articoli associati al listino, ordinati secondo l'ordine delle tipologie a cui appartengono e,
 # all'interno delle singole tipologie, secondo il campo "posizione" in articoli_listini
 @bp.get('/articoli_listino_tipologie/<int:listino>')
-def get_listini_cassa(listino):
+def get_articoli_listino_tipologie(listino):
     cur = get_connection().cursor()
     cur.execute("""SELECT articoli.id, articoli.nome, articoli.nome_breve, articoli.tipologia, articoli.prezzo, articoli_listini.sfondo
                 FROM articoli_listini

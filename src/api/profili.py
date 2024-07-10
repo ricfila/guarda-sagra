@@ -12,7 +12,7 @@ def get_profili():
 
 
 @bp.get('/profili/<int:profili_id>')
-def get_profili(profili_id):
+def get_profilo(profili_id):
     cur = get_connection().cursor()
     cur.execute("SELECT * FROM profili WHERE id = {};".format(profili_id))
     return jsonify(cur.fetch())
