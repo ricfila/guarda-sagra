@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
@@ -7,6 +8,62 @@ def max_4_chars_and_only_digits(string):
 def max_4_chars(text):
     return len(text) <= 4
 
+
+def insert_order(orders, articolo):
+    # Check if there are any existing orders with the same articolo[3] (assuming it's a unique identifier)
+    matching_items = [item for item in orders.get_children() if orders.item(item)['values'][1] == articolo[3]]
+
+    if matching_items:
+        # If there are matching articles, update the first matching item with an incremented first value
+        first_matching_item = matching_items[0]
+        current_values = orders.item(first_matching_item)['values']
+        current_first_value = int(current_values[0])
+        new_first_value = current_first_value + 1
+        updated_values = (str(new_first_value),) + tuple(current_values[1:])  # Convert to tuple and concatenate
+        orders.item(first_matching_item, values=updated_values)
+    else:
+        # If there are no matching articles, insert a new one with first value '1'
+        orders.insert('', 'end', values=('1', articolo[3], articolo[5], ''))
+
+
+
+
+
+def on_select_delete(event, orders):
+    to_delete = orders.selection()[0]
+    orders.delete(to_delete)
+
+
+def on_select_note_edit(event, orders): #click destro per modificare note. "invio" per modificare, "esc" o click fuori per annullare
+    region = orders.identify("region", event.x, event.y)
+    if region == "cell":
+        col = orders.identify_column(event.x)
+        item = orders.identify_row(event.y)
+        if col == '#4':
+            bbox = orders.bbox(item, '#4')
+
+            if bbox:
+                x, y, width, height = bbox
+                current_value = orders.item(item)['values'][3]
+                edit_entry = ttk.Entry(orders, width=20)
+                edit_entry.insert(0, current_value)
+
+                def save_edit(event):
+                    new_value = edit_entry.get()
+                    orders.set(item, '#4', new_value)
+                    edit_entry.destroy()
+
+                edit_entry.bind("<Return>", save_edit)
+
+                def cancel_edit(event):
+                    edit_entry.destroy()
+                    orders.set(item, '#4', current_value)
+
+                edit_entry.bind("<FocusOut>", cancel_edit) #se si vuole salvare clickando al di fuori, modifica in save_edit
+                edit_entry.bind("<Escape>", cancel_edit)
+
+                edit_entry.place(x=x, y=y, width=width, height=height)
+                edit_entry.focus_set()
 
 
 def draw_cassa(notebook):
@@ -70,88 +127,7 @@ def draw_cassa(notebook):
     note_name_entry.pack(side='left', padx=(2, 20), expand=True, fill='x')
 
     # gestisco choices_frame
-    join_listini_articoli = [
-        [1, 'Listino 1', 1, 'Articolo 1', 'Primi', 5.00],
-        [1, 'Listino 1', 2, 'Articolo 2', 'Primi', 6.00],
-        [1, 'Listino 1', 3, 'Articolo 3', 'Primi', 5.50],
-        [1, 'Listino 1', 4, 'Articolo 4', 'Primi', 6.50],
-        [1, 'Listino 1', 5, 'Articolo 5', 'Primi', 7.00],
-        [1, 'Listino 1', 6, 'Articolo 6', 'Primi', 7.50],
-        [1, 'Listino 1', 7, 'Articolo 7', 'Primi', 8.00],
-        [1, 'Listino 1', 8, 'Articolo 8', 'Primi', 8.50],
-        [1, 'Listino 1', 9, 'Articolo 9', 'Primi', 9.00],
-        [1, 'Listino 1', 10, 'Articolo 10', 'Primi', 9.50],
-        [1, 'Listino 1', 11, 'Articolo 11', 'Primi', 10.00],
-        [1, 'Listino 1', 12, 'Articolo 12', 'Primi', 10.50],
-        [1, 'Listino 1', 13, 'Articolo 13', 'Primi', 11.00],
-        [1, 'Listino 1', 14, 'Articolo 14', 'Primi', 11.50],
-        [1, 'Listino 1', 15, 'Articolo 15', 'Primi', 12.00],
-        [1, 'Listino 1', 16, 'Articolo 16', 'Primi', 12.50],
-        [1, 'Listino 1', 17, 'Articolo 17', 'Primi', 13.00],
-        [1, 'Listino 1', 18, 'Articolo 18', 'Primi', 13.50],
-        [1, 'Listino 1', 19, 'Articolo 19', 'Primi', 14.00],
-        [1, 'Listino 1', 20, 'Articolo 20', 'Primi', 14.50],
-        [2, 'Listino 2', 1, 'Articolo 1', 'Primi', 5.00],
-        [2, 'Listino 2', 2, 'Articolo 2', 'Primi', 6.00],
-        [2, 'Listino 2', 3, 'Articolo 3', 'Primi', 5.50],
-        [2, 'Listino 2', 4, 'Articolo 4', 'Primi', 6.50],
-        [2, 'Listino 2', 5, 'Articolo 5', 'Primi', 7.00],
-        [2, 'Listino 2', 6, 'Articolo 6', 'Primi', 7.50],
-        [2, 'Listino 2', 7, 'Articolo 7', 'Primi', 8.00],
-        [2, 'Listino 2', 8, 'Articolo 8', 'Primi', 8.50],
-        [2, 'Listino 2', 9, 'Articolo 9', 'Primi', 9.00],
-        [2, 'Listino 2', 10, 'Articolo 10', 'Primi', 9.50],
-        [2, 'Listino 2', 11, 'Articolo 11', 'Primi', 10.00],
-        [2, 'Listino 2', 12, 'Articolo 12', 'Primi', 10.50],
-        [2, 'Listino 2', 13, 'Articolo 13', 'Primi', 11.00],
-        [2, 'Listino 2', 14, 'Articolo 14', 'Primi', 11.50],
-        [2, 'Listino 2', 15, 'Articolo 15', 'Primi', 12.00],
-        [2, 'Listino 2', 16, 'Articolo 16', 'Primi', 12.50],
-        [2, 'Listino 2', 17, 'Articolo 17', 'Primi', 13.00],
-        [2, 'Listino 2', 18, 'Articolo 18', 'Primi', 13.50],
-        [2, 'Listino 2', 19, 'Articolo 19', 'Primi', 14.00],
-        [2, 'Listino 2', 20, 'Articolo 20', 'Primi', 14.50],
-        [1, 'Listino 1', 1, 'Articolo 1', 'Secondi', 5.0],
-        [1, 'Listino 1', 2, 'Articolo 2', 'Secondi', 6.0],
-        [1, 'Listino 1', 3, 'Articolo 3', 'Secondi', 5.5],
-        [1, 'Listino 1', 4, 'Articolo 4', 'Secondi', 6.5],
-        [1, 'Listino 1', 5, 'Articolo 5', 'Secondi', 7.0],
-        [1, 'Listino 1', 6, 'Articolo 6', 'Secondi', 7.5],
-        [1, 'Listino 1', 7, 'Articolo 7', 'Secondi', 8.0],
-        [1, 'Listino 1', 8, 'Articolo 8', 'Secondi', 8.5],
-        [1, 'Listino 1', 9, 'Articolo 9', 'Secondi', 9.0],
-        [1, 'Listino 1', 10, 'Articolo 10', 'Secondi', 9.5],
-        [1, 'Listino 1', 11, 'Articolo 11', 'Secondi', 10.0],
-        [1, 'Listino 1', 12, 'Articolo 12', 'Secondi', 10.5],
-        [1, 'Listino 1', 13, 'Articolo 13', 'Secondi', 11.0],
-        [1, 'Listino 1', 14, 'Articolo 14', 'Secondi', 11.5],
-        [1, 'Listino 1', 15, 'Articolo 15', 'Secondi', 12.0],
-        [1, 'Listino 1', 16, 'Articolo 16', 'Secondi', 12.5],
-        [1, 'Listino 1', 17, 'Articolo 17', 'Secondi', 13.0],
-        [1, 'Listino 1', 18, 'Articolo 18', 'Secondi', 13.5],
-        [1, 'Listino 1', 19, 'Articolo 19', 'Secondi', 14.0],
-        [1, 'Listino 1', 20, 'Articolo 20', 'Secondi', 14.5],
-        [2, 'Listino 2', 1, 'Articolo 1', 'Secondi', 5.0],
-        [2, 'Listino 2', 2, 'Articolo 2', 'Secondi', 6.0],
-        [2, 'Listino 2', 3, 'Articolo 3', 'Secondi', 5.5],
-        [2, 'Listino 2', 4, 'Articolo 4', 'Secondi', 6.5],
-        [2, 'Listino 2', 5, 'Articolo 5', 'Secondi', 7.0],
-        [2, 'Listino 2', 6, 'Articolo 6', 'Secondi', 7.5],
-        [2, 'Listino 2', 7, 'Articolo 7', 'Secondi', 8.0],
-        [2, 'Listino 2', 8, 'Articolo 8', 'Secondi', 8.5],
-        [2, 'Listino 2', 9, 'Articolo 9', 'Secondi', 9.0],
-        [2, 'Listino 2', 10, 'Articolo 10', 'Secondi', 9.5],
-        [2, 'Listino 2', 11, 'Articolo 11', 'Secondi', 10.0],
-        [2, 'Listino 2', 12, 'Articolo 12', 'Secondi', 10.5],
-        [2, 'Listino 2', 13, 'Articolo 13', 'Secondi', 11.0],
-        [2, 'Listino 2', 14, 'Articolo 14', 'Secondi', 11.5],
-        [2, 'Listino 2', 15, 'Articolo 15', 'Secondi', 12.0],
-        [2, 'Listino 2', 16, 'Articolo 16', 'Secondi', 12.5],
-        [2, 'Listino 2', 17, 'Articolo 17', 'Secondi', 13.0],
-        [2, 'Listino 2', 18, 'Articolo 18', 'Secondi', 13.5],
-        [2, 'Listino 2', 19, 'Articolo 19', 'Secondi', 14.0],
-        [2, 'Listino 2', 20, 'Articolo 20', 'Secondi', 14.5]
-    ]  # Fatta da chatgpt :)
+    join_listini_articoli = [[1, 'Listino 1', 1, 'Articolo 1', 'Primi', 5.00],[2, 'Listino 2', 10, 'Articolo 10', 'Secondi', 9.5]] ###############################COPIA DA TXT
 
     lista_listini = sorted(list({(item[0], item[1]) for item in join_listini_articoli}))
     listini_notebook = ttk.Notebook(choices_frame)
@@ -163,15 +139,19 @@ def draw_cassa(notebook):
         lista_tipologie = sorted(list({item[4] for item in join_listini_articoli if item[0] == item_listino[0]}))
 
         for tipologia in lista_tipologie:
+
             frame_tipologia = ttk.Frame(listino)
             frame_tipologia.pack(side='top', fill='x')
+
             label_tipologia = ttk.Label(frame_tipologia, text=tipologia)
             label_tipologia.pack(side='left', padx=10)
+
             riga_nera = tk.Frame(frame_tipologia, height=1, width=300, bg='black')
             riga_nera.pack(side='left', fill='x', expand=True, padx=10)
 
             frame_canvas = ttk.Frame(listino)
             frame_canvas.pack(side='top', fill='both', expand=True)
+
             canvas = tk.Canvas(frame_canvas)
             canvas.pack(side = 'left', fill='both', expand=True)
 
@@ -180,18 +160,26 @@ def draw_cassa(notebook):
 
             canvas.configure(yscrollcommand=scrollbar.set)
 
-            frame_articoli = ttk.Frame(canvas)
-            canvas.create_window((0, 0), window=frame_articoli, anchor='nw')
-            lista_articoli = sorted(list({(item[2], item[3], item[5]) for item in join_listini_articoli
+            lista_articoli = sorted(list({tuple(item) for item in join_listini_articoli
                                           if (item[0] == item_listino[0] and item[4] == tipologia)}))
 
             for i, articolo in enumerate(lista_articoli):
-                ttk.Button(frame_articoli, text=articolo[1], command=lambda nome=articolo[1]: print(nome)).grid(
-                    row=i // 6, column=i % 6, padx=5, pady=5)
-
+                ttk.Button(canvas, text=articolo[3], command=lambda arti = articolo: insert_order(orders, arti)).grid(row=i // 6, column=i % 6, padx=5, pady=5)
 
             canvas.update_idletasks()
             canvas.configure(scrollregion=canvas.bbox("all"))
+
+    # gestisco order_frame
+
+    orders = ttk.Treeview(order_frame, columns=('qta', 'piatto', 'prezzo', 'note'), show='headings')
+    orders.heading('qta', text='Qtà')
+    orders.heading('piatto', text='Piatto')
+    orders.heading('prezzo', text='Prezzo')
+    orders.heading('note', text='Note')
+
+    orders.pack(side='left', fill='both', expand=True)
+    orders.bind("<Double-1>", lambda event, ord=orders: on_select_delete(event, ord))
+    orders.bind("<Button-3>", lambda event, ord=orders: on_select_note_edit(event, ord)) #click destro per modificare note. "invio" per modificare, "esc" per annullare
 
 
     label3 = ttk.Label(bill_frame, text="bill_frame", background='green')
