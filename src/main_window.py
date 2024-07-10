@@ -5,11 +5,12 @@ from ttkthemes import ThemedTk
 from tkinter import messagebox
 import sys  # used to end the program
 import config
+from ui.tabs import *
 class Main_window(tk.Tk):
     def __init__(self, profile):
         print(profile) #TODO inserire le modifiche date dalla scelta profilo
         super().__init__()
-        self.title('Guarda Sagra')
+        self.title(f'Guarda Sagra - ' + profile)
         self.state('zoomed') # Apre la finestra massimizzata
         self.draw_tabs(profile) # TODO forse da rivedere
         self.create_menu()
@@ -20,6 +21,10 @@ class Main_window(tk.Tk):
         notebook = ttk.Notebook(self)
         #TODO inserisci quì parti condivise tra tutti i profili
         #TODO parte_condivisa = self.create_tab(notebook, "Condivisa")
+
+        # Schermate condivise tra tutti i profili
+        cassa.draw_cassa(notebook)
+        '''
         if profile == 'Admin':
             self.draw_tab(notebook, "Listini")
             self.draw_tab(notebook, "Ingredienti")
@@ -33,13 +38,8 @@ class Main_window(tk.Tk):
             self.draw_tab(notebook, "Avanzamento Stati")
             self.draw_tab(notebook, "Scorte")
             self.draw_tab(notebook, "Chiusura Cassa")
+        '''
         notebook.pack(expand=True, fill="both")
-
-    def draw_tab(self, notebook, title):
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=title)
-        esempio_label1 = ttk.Label(tab, text='Aperto il tab ' + title)
-        esempio_label1.pack()
 
     def create_menu(self):
         menu = tk.Menu(self)
@@ -70,16 +70,6 @@ class Main_window(tk.Tk):
         exercise_menu.add_cascade(label='more stuff', menu=exercise_sub_menu)
         '''
         self.configure(menu=menu)
-
-        # menu button
-        menu_button = ttk.Menubutton(self, text='Menu Button')
-        menu_button.pack()
-
-        button_sub_menu = tk.Menu(menu_button, tearoff=False)
-        button_sub_menu.add_command(label='entry 1', command=lambda: print('test 1'))
-        button_sub_menu.add_checkbutton(label='check 1')
-        # menu_button.configure(menu = button_sub_menu)
-        menu_button['menu'] = button_sub_menu
 
 class Menu(ttk.Frame):
     def __init__(self, parent):
