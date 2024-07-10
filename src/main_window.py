@@ -5,11 +5,12 @@ from ttkthemes import ThemedTk
 from tkinter import messagebox
 import sys  # used to end the program
 import config
+from ui.tabs import *
 class Main_window(tk.Tk):
     def __init__(self, profile):
         print(profile) #TODO inserire le modifiche date dalla scelta profilo
         super().__init__()
-        self.title('Guarda Sagra')
+        self.title(f'Guarda Sagra - ' + profile)
         self.state('zoomed') # Apre la finestra massimizzata
         self.draw_tabs(profile) # TODO forse da rivedere
         self.create_menu()
@@ -22,8 +23,8 @@ class Main_window(tk.Tk):
         #TODO parte_condivisa = self.create_tab(notebook, "Condivisa")
 
         # Schermate condivise tra tutti i profili
-        self.draw_tab(notebook, "Cassa")
-
+        cassa.draw_cassa(notebook)
+        '''
         if profile == 'Admin':
             self.draw_tab(notebook, "Listini")
             self.draw_tab(notebook, "Ingredienti")
@@ -37,45 +38,8 @@ class Main_window(tk.Tk):
             self.draw_tab(notebook, "Avanzamento Stati")
             self.draw_tab(notebook, "Scorte")
             self.draw_tab(notebook, "Chiusura Cassa")
-
+        '''
         notebook.pack(expand=True, fill="both")
-
-    def draw_tab(self, notebook, title):
-        tab = ttk.Frame(notebook)
-        notebook.add(tab, text=title)
-        self.draw_cassa(tab)
-
-    def draw_cassa(self, tab):
-        info_frame = ttk.Frame(tab)
-        order_frame = ttk.Frame(tab)
-        bill_frame = ttk.Frame(tab)
-        options_frame = ttk.Frame(tab)
-        choices_frame = ttk.Frame(tab)
-        label1 = ttk.Label(info_frame, text="title", background = 'red')
-        label2 = ttk.Label(order_frame, text="title", background = 'blue')
-        label3 = ttk.Label(bill_frame, text="title", background = 'green')
-        label4 = ttk.Label(options_frame, text="title", background = 'yellow')
-        label5 = ttk.Label(choices_frame, text="title", background = 'brown')
-        label1.pack(expand=True, fill='both')
-        label2.pack(expand=True, fill='both')
-        label3.pack(expand=True, fill='both')
-        label4.pack(expand=True, fill='both')
-        label5.pack(expand=True, fill='both')
-
-
-
-        # create grid
-        tab.columnconfigure((0, 1), weight=1, uniform='a')
-        tab.rowconfigure(0, weight=1, uniform='a')
-        tab.rowconfigure(1, weight=6, uniform='a')
-        tab.rowconfigure(2, weight=2, uniform='a')
-        # left menu
-        info_frame.grid(row=0, column=0, sticky='nswe')
-        order_frame.grid(row=1, column=0, sticky='nswe')
-        bill_frame.grid(row=2, column=0, sticky='nsew', columnspan=2)
-        #right menu
-        options_frame.grid(row=0, column=1, sticky='nsew')
-        choices_frame.grid(row=1, column=1, sticky='nsew')
 
     def create_menu(self):
         menu = tk.Menu(self)
@@ -106,16 +70,6 @@ class Main_window(tk.Tk):
         exercise_menu.add_cascade(label='more stuff', menu=exercise_sub_menu)
         '''
         self.configure(menu=menu)
-
-        # menu button
-        menu_button = ttk.Menubutton(self, text='Menu Button')
-        menu_button.pack()
-
-        button_sub_menu = tk.Menu(menu_button, tearoff=False)
-        button_sub_menu.add_command(label='entry 1', command=lambda: print('test 1'))
-        button_sub_menu.add_checkbutton(label='check 1')
-        # menu_button.configure(menu = button_sub_menu)
-        menu_button['menu'] = button_sub_menu
 
 class Menu(ttk.Frame):
     def __init__(self, parent):
