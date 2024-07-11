@@ -24,6 +24,7 @@ class Main_window(tk.Tk):
 
         # Schermate condivise tra tutti i profili
         cassa.draw_cassa(notebook)
+        articoli.draw_articoli(notebook)
         '''
         if profile == 'Admin':
             self.draw_tab(notebook, "Listini")

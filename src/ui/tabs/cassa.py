@@ -3,12 +3,13 @@ from tkinter import ttk
 import functools
 import requests
 import json
+from config import configs
 
 
-def salva(orders):
+def salva(orders): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
     pass
     '''
-    url = "your_endpoint_url_here"  # Replace with your actual endpoint URL
+    url = 'http://' + configs['API']['server'] + ':' + configs['API']['port'] + '/ordini'
     data_to_send = []
 
     for item in orders.get_children():

@@ -17,7 +17,9 @@ def init():
     configs.read(config_file_path)
 
     # Aggiunge impostazioni di default se non erano presenti nel file
-    sezioni = {"PostgreSQL": {"server": "localhost",
+    sezioni = {"API": {"server": "localhost",
+                       "port":5000},
+               "PostgreSQL": {"server": "localhost",
                               "port": 5432,
                               "database": "gs",
                               "username": "postgres",
