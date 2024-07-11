@@ -19,6 +19,7 @@ def insert_order(orders, articolo):
         orders.item(matching_item, values=updated_values)
     else:
         orders.insert('', 'end', values=('-','1', articolo[3], articolo[5], ''))
+    update_bill(orders)
 
 def on_select(event, orders):
     region = orders.identify("region", event.x, event.y)
@@ -29,23 +30,18 @@ def on_select(event, orders):
         if col == 'note':
             on_select_note_edit(orders, item, col_index)
         elif col == 'rimuovi':
-            on_select_delete(orders)
+            on_select_delete(orders, item)
 
 
-def on_select_delete(orders):
-    selected_items = orders.selection()
-    if not selected_items:
-        return
-
-    selected_item = selected_items[0]
-    current_values = orders.item(selected_item, 'values')
-
+def on_select_delete(orders, item):
+    current_values = orders.item(item, 'values')
     if current_values[1] == '1':
-        orders.delete(selected_item)
+        orders.delete(item)
     else:
         decremented_first_value = int(current_values[1]) - 1
         updated_values = ('-', str(decremented_first_value),) + tuple(current_values[2:])
-        orders.item(selected_item, values=updated_values)
+        orders.item(item, values=updated_values)
+    update_bill(orders)
 
 
 
@@ -79,6 +75,27 @@ def on_select_note_edit(orders, item, col_index):
             edit_entry.focus_set()
         edit_entry.after_idle(set_focus)
 
+def update_bill(orders):
+    total_price = 0.0
+
+    for item in orders.get_children():
+        price_idx = orders['columns'].index('prezzo')
+        qta_idx = orders['columns'].index('qta')
+        price_str = orders.item(item, 'values')[price_idx]
+        try:
+            price = float(price_str)
+        except ValueError:
+            continue
+        qta_str = orders.item(item, 'values')[qta_idx]
+        try:
+            qta = int(qta_str)
+        except ValueError:
+            continue
+
+        item_total = price * qta
+        total_price += item_total
+    bill.set(total_price)
+    bill_formatted_text.set(f"€ {bill.get():,.2f}")
 
 def draw_cassa(notebook):
     tab = ttk.Frame(notebook)
@@ -195,21 +212,22 @@ def draw_cassa(notebook):
     orders.heading('note', text='Note')
 
     orders.pack(side='left', fill='both', expand=True)
-    orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord)) #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare
+    orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord))
+    #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare. click sinistro su rimuovi per rimuovere
 
     # gestisco bill_frame
+    global bill
     bill = tk.DoubleVar()
-    bill.set(0.00)
 
+    global bill_formatted_text
+    bill_formatted_text = tk.StringVar()
+
+    bill.set(0.00)
     totals_label = ttk.Label(bill_frame, text="Totale: ")
     totals_label.pack(side='left', padx=50)
 
-    bill_formatted_text= tk.StringVar()
-    update_bill(bill, bill_formatted_text)
-
     bill_label = tk.Label(bill_frame, textvariable=bill_formatted_text)
     bill_label.pack(side='left')
+    update_bill(orders)
 
-def update_bill(double_var, formatted_var):
-    double_var.set(3.00)
-    formatted_var.set(f"€ {double_var.get():,.2f}")
+
