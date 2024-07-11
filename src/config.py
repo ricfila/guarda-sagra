@@ -1,7 +1,7 @@
 import configparser
 import os
 
-config = configparser.ConfigParser()
+configs = configparser.ConfigParser()
 
 
 def init():
@@ -14,7 +14,7 @@ def init():
         open(config_file_path, 'x')
 
     # Importa le impostazioni dal file
-    config.read(config_file_path)
+    configs.read(config_file_path)
 
     # Aggiunge impostazioni di default se non erano presenti nel file
     sezioni = {"PostgreSQL": {"server": "localhost",
@@ -26,13 +26,13 @@ def init():
                }
 
     for k, v in sezioni.items():
-        if (k not in config.sections()
-                or any(key not in config[k] for key in v.keys())):
-            config[k] = v
+        if (k not in configs.sections()
+                or any(key not in configs[k] for key in v.keys())):
+            configs[k] = v
 
     # Salva tutte le impostazioni (vecchie e nuove) su file
     configfile = open(config_file_path, 'w')
-    config.write(configfile)
+    configs.write(configfile)
 
 
 ''' #ESEMPIO LETTURA DA CONFIG
