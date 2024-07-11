@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 import functools
+
+def salva():
+    pass
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
 
@@ -237,6 +240,9 @@ def draw_cassa(notebook):
     bill_label = tk.Label(bill_frame, textvariable=bill_formatted_text)
     bill_label.pack(side='left')
     update_bill(orders)
+
+    salva_tutto = ttk.Button(bill_frame, text="Salva", command=salva())
+    salva_tutto.pack(side='bottom', pady=(0, 60))
 
     # gestisco options_frame
     asporto_value = tk.BooleanVar()
