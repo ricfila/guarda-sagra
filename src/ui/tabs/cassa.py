@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox
-
+import functools
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
 
@@ -121,6 +120,19 @@ def draw_cassa(notebook):
     options_frame.grid(row=0, column=1, sticky='nsew')
     choices_frame.grid(row=1, column=1, rowspan=2, sticky='nsew')
 
+    # gestisco order_frame
+
+    orders = ttk.Treeview(order_frame, columns=('rimuovi','qta', 'piatto', 'prezzo', 'note'), show='headings')
+    orders.heading('rimuovi', text='Rimuovi')
+    orders.heading('qta', text='Qtà')
+    orders.heading('piatto', text='Piatto')
+    orders.heading('prezzo', text='Prezzo')
+    orders.heading('note', text='Note')
+
+    orders.pack(side='left', fill='both', expand=True)
+    orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord))
+    #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare. click sinistro su rimuovi per rimuovere
+
     # suddivido e gestisco info_frame
     n_info_frame = ttk.Frame(info_frame)
     n_info_frame.pack(side='top', expand=True, fill='both')
@@ -160,7 +172,7 @@ def draw_cassa(notebook):
     # gestisco choices_frame
     join_listini_articoli = [[1, 'Listino 1', 1, 'Articolo 1', 'Primi', 5.00],[2, 'Listino 2', 10, 'Articolo 10', 'Secondi', 9.5]] ###############################COPIA DA TXT
 
-    lista_listini = sorted(list({(item[0], item[1]) for item in join_listini_articoli}))
+    lista_listini = sorted({(item[0], item[1]) for item in join_listini_articoli})
     listini_notebook = ttk.Notebook(choices_frame)
     listini_notebook.pack(fill='both', expand=True)
 
@@ -169,52 +181,48 @@ def draw_cassa(notebook):
         listini_notebook.add(listino, text=item_listino[1])
         lista_tipologie = sorted(list({item[4] for item in join_listini_articoli if item[0] == item_listino[0]}))
 
-        for tipologia in lista_tipologie:
+        canvas = tk.Canvas(listino)
+        canvas.pack(side='left', fill='both', expand=True)
 
-            frame_tipologia = ttk.Frame(listino)
+        scrollbar = ttk.Scrollbar(listino, orient='vertical', command=canvas.yview)
+        scrollbar.pack(side='right', fill='y')
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Frame inside canvas to contain tipologia and buttons
+        frame_inside_canvas = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=frame_inside_canvas, anchor='nw')
+
+        # Iterate over tipologie for the current listino
+        for tipologia in lista_tipologie:
+            # Frame for each tipologia
+            frame_tipologia = ttk.Frame(frame_inside_canvas)
             frame_tipologia.pack(side='top', fill='x')
 
+            # Label for tipologia
             label_tipologia = ttk.Label(frame_tipologia, text=tipologia)
             label_tipologia.pack(side='left', padx=10)
 
+            # Horizontal black line
             riga_nera = tk.Frame(frame_tipologia, height=1, width=300, bg='black')
             riga_nera.pack(side='left', fill='x', expand=True, padx=10)
 
-            frame_canvas = ttk.Frame(listino)
-            frame_canvas.pack(side='top', fill='both', expand=True)
+            # Frame for buttons
+            frame_buttons = tk.Frame(frame_inside_canvas)
+            frame_buttons.pack(side='top', fill='both', expand=True)
 
-            canvas = tk.Canvas(frame_canvas)
-            canvas.pack(side = 'left', fill='both', expand=True)
-
-            scrollbar = ttk.Scrollbar(frame_canvas, orient = 'vertical', command = canvas.yview)
-            scrollbar.pack(side='right', fill='y')
-
-            canvas.configure(yscrollcommand=scrollbar.set)
-
+            # Filter and sort articles for the current listino and tipologia
             lista_articoli = sorted(list({tuple(item) for item in join_listini_articoli
                                           if (item[0] == item_listino[0] and item[4] == tipologia)}))
 
             for i, articolo in enumerate(lista_articoli):
                 #if articolo[sfondo] == hex:
                 #    colore = 'black'
-                ttk.Button(canvas, text=articolo[3], command=lambda arti = articolo: insert_order(orders, arti)).grid(row=i // 6, column=i % 6, padx=5, pady=5)
-
+                button = ttk.Button(frame_buttons, text=articolo[3],
+                                    command=functools.partial(insert_order, orders, articolo))
+                button.grid(row=i // 6, column=i % 6, padx=5, pady=5)
             canvas.update_idletasks()
             canvas.configure(scrollregion=canvas.bbox("all"))
-
-    # gestisco order_frame
-
-    orders = ttk.Treeview(order_frame, columns=('rimuovi','qta', 'piatto', 'prezzo', 'note'), show='headings')
-    orders.heading('rimuovi', text='Rimuovi')
-    orders.heading('qta', text='Qtà')
-    orders.heading('piatto', text='Piatto')
-    orders.heading('prezzo', text='Prezzo')
-    orders.heading('note', text='Note')
-
-    orders.pack(side='left', fill='both', expand=True)
-    orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord))
-    #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare. click sinistro su rimuovi per rimuovere
-
     # gestisco bill_frame
     global bill
     bill = tk.DoubleVar()
@@ -230,4 +238,36 @@ def draw_cassa(notebook):
     bill_label.pack(side='left')
     update_bill(orders)
 
+    # gestisco options_frame
+    asporto_value = tk.BooleanVar()
+    veloce_value = tk.BooleanVar()
+    omaggio_value = tk.BooleanVar()
+    servizio_value = tk.BooleanVar()
+
+    def toggle_checkbox(event, var):
+        var.set(not var.get())
+
+    def crea_checkbox(label_text, var):
+        frame = tk.Frame(options_frame, borderwidth=1, relief=tk.RIDGE)
+
+        checkbox = tk.Checkbutton(frame, variable=var, onvalue=True, offvalue=False)
+        checkbox.pack(side='left')
+
+        label = tk.Label(frame, text=label_text)
+        label.pack(side='left', padx=5)
+
+        frame.bind("<Button-1>", lambda event: toggle_checkbox(event, var))
+        label.bind("<Button-1>", lambda event: toggle_checkbox(event, var))
+
+        return frame
+
+    asporto_checkbox = crea_checkbox("Asporto", asporto_value)
+    veloce_checkbox = crea_checkbox("Veloce", veloce_value)
+    omaggio_checkbox = crea_checkbox("Omaggio", omaggio_value)
+    servizio_checkbox = crea_checkbox("Servizio", servizio_value)
+
+    asporto_checkbox.grid(row=0, column=0, sticky='nsw')
+    veloce_checkbox.grid(row=0, column=1, sticky='nsw')
+    omaggio_checkbox.grid(row=1, column=0, sticky='nsw')
+    servizio_checkbox.grid(row=1, column=1, sticky='nsw')
 
