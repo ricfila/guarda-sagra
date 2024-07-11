@@ -8,21 +8,19 @@ CREATE TABLE IF NOT EXISTS `tipologie` (
   `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
   `nome` varchar(64),
   `posizione` int,
-  `sfondo` int,
+  `sfondo` varchar(16) DEFAULT NULL,
   `visibile` boolean
 );
 CREATE TABLE IF NOT EXISTS `articoli` (
   `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
   `nome` varchar(64),
   `nome_breve` varchar(32),
-  `tipologia` int NOT NULL,
   `prezzo` numeric(10, 2),
   `copia_cliente` boolean,
   `copia_cucina` boolean,
   `copia_bar` boolean,
   `copia_pizzeria` boolean,
-  `copia_rosticceria` boolean,
-  FOREIGN KEY (`tipologia`) REFERENCES `tipologie` (`id`)
+  `copia_rosticceria` boolean
 );
 CREATE TABLE IF NOT EXISTS `ingredienti` (
   `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -37,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `articoli_ingredienti` (
   `quantita_massima` numeric(10, 2),
   `obbligatorio` boolean,
   `sovrapprezzo` numeric(10, 2),
-  `sfondo` int,
+  `sfondo` varchar(16) DEFAULT NULL,
   `posizione` int,
   `visibile` boolean,
   PRIMARY KEY (`articolo`, `ingrediente`),
@@ -51,12 +49,14 @@ CREATE TABLE IF NOT EXISTS `listini` (
 CREATE TABLE IF NOT EXISTS `articoli_listini` (
   `articolo` int NOT NULL,
   `listino` int NOT NULL,
+  `tipologia` int,
   `posizione` int,
-  `sfondo` int,
+  `sfondo` varchar(16) DEFAULT NULL,
   `visibile` boolean,
   PRIMARY KEY (`articolo`, `listino`),
   FOREIGN KEY (`articolo`) REFERENCES `articoli` (`id`),
-  FOREIGN KEY (`listino`) REFERENCES `listini` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (`listino`) REFERENCES `listini` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`tipologia`) REFERENCES `tipologie` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `profili` (
   `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
