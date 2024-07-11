@@ -1,9 +1,35 @@
 import tkinter as tk
 from tkinter import ttk
 import functools
+import requests
+import json
 
-def salva():
+
+def salva(orders):
     pass
+    '''
+    url = "your_endpoint_url_here"  # Replace with your actual endpoint URL
+    data_to_send = []
+
+    for item in orders.get_children():
+        item_data = {}
+        for column in ('qta', 'piatto', 'prezzo', 'note', 'id_listino', 'id_articolo'):
+            item_data[column] = orders.item(item, 'values')[orders['columns'].index(column)]
+        data_to_send.append(item_data)
+
+    # Convert data to JSON format
+    json_data = json.dumps(data_to_send)
+
+    # Send POST request
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(url, data=json_data, headers=headers)
+
+    if response.status_code == 200:
+        print("Data saved successfully!")
+    else:
+        print(f"Error saving data: {response.status_code} - {response.text}")
+    '''
+
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
 
@@ -20,7 +46,7 @@ def insert_order(orders, articolo):
         updated_values = ('-', str(new_first_value),) + tuple(current_values[2:])
         orders.item(matching_item, values=updated_values)
     else:
-        orders.insert('', 'end', values=('-','1', articolo[3], articolo[5], ''))
+        orders.insert('', 'end', values=('-','1', articolo[3], articolo[5], '', articolo[0], articolo[2]))
     update_bill(orders)
 
 def on_select(event, orders):
@@ -125,15 +151,24 @@ def draw_cassa(notebook):
 
     # gestisco order_frame
 
-    orders = ttk.Treeview(order_frame, columns=('rimuovi','qta', 'piatto', 'prezzo', 'note'), show='headings')
+    orders = ttk.Treeview(order_frame,
+                          columns=('rimuovi', 'qta', 'piatto', 'prezzo', 'note', 'id_listino', 'id_articolo'),
+                          show='headings')
     orders.heading('rimuovi', text='Rimuovi')
     orders.heading('qta', text='Qtà')
     orders.heading('piatto', text='Piatto')
     orders.heading('prezzo', text='Prezzo')
     orders.heading('note', text='Note')
 
+    orders.heading('id_listino', text='')
+    orders.heading('id_articolo', text='')
+
     orders.pack(side='left', fill='both', expand=True)
+
+    orders.column('id_listino', width=0)
+    orders.column('id_articolo', width=0)
     orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord))
+
     #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare. click sinistro su rimuovi per rimuovere
 
     # suddivido e gestisco info_frame
@@ -192,34 +227,27 @@ def draw_cassa(notebook):
 
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Frame inside canvas to contain tipologia and buttons
         frame_inside_canvas = tk.Frame(canvas)
         canvas.create_window((0, 0), window=frame_inside_canvas, anchor='nw')
 
-        # Iterate over tipologie for the current listino
         for tipologia in lista_tipologie:
-            # Frame for each tipologia
             frame_tipologia = ttk.Frame(frame_inside_canvas)
             frame_tipologia.pack(side='top', fill='x')
 
-            # Label for tipologia
             label_tipologia = ttk.Label(frame_tipologia, text=tipologia)
             label_tipologia.pack(side='left', padx=10)
 
-            # Horizontal black line
             riga_nera = tk.Frame(frame_tipologia, height=1, width=300, bg='black')
             riga_nera.pack(side='left', fill='x', expand=True, padx=10)
 
-            # Frame for buttons
             frame_buttons = tk.Frame(frame_inside_canvas)
             frame_buttons.pack(side='top', fill='both', expand=True)
 
-            # Filter and sort articles for the current listino and tipologia
             lista_articoli = sorted(list({tuple(item) for item in join_listini_articoli
                                           if (item[0] == item_listino[0] and item[4] == tipologia)}))
 
             for i, articolo in enumerate(lista_articoli):
-                #if articolo[sfondo] == hex:
+                #if articolo[sfondo] == hex: #TODO
                 #    colore = 'black'
                 button = ttk.Button(frame_buttons, text=articolo[3],
                                     command=functools.partial(insert_order, orders, articolo))
@@ -241,7 +269,7 @@ def draw_cassa(notebook):
     bill_label.pack(side='left')
     update_bill(orders)
 
-    salva_tutto = ttk.Button(bill_frame, text="Salva", command=salva())
+    salva_tutto = ttk.Button(bill_frame, text="Salva", command=salva(orders))
     salva_tutto.pack(side='bottom', pady=(0, 60))
 
     # gestisco options_frame
