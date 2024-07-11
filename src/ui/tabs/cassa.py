@@ -10,60 +10,74 @@ def max_4_chars(text):
 
 
 def insert_order(orders, articolo):
-    # Check if there are any existing orders with the same articolo[3] (assuming it's a unique identifier)
-    matching_items = [item for item in orders.get_children() if orders.item(item)['values'][1] == articolo[3]]
+    matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][2] == articolo[3]), None)
 
-    if matching_items:
-        # If there are matching articles, update the first matching item with an incremented first value
-        first_matching_item = matching_items[0]
-        current_values = orders.item(first_matching_item)['values']
-        current_first_value = int(current_values[0])
-        new_first_value = current_first_value + 1
-        updated_values = (str(new_first_value),) + tuple(current_values[1:])  # Convert to tuple and concatenate
-        orders.item(first_matching_item, values=updated_values)
+    if matching_item:
+        current_values = orders.item(matching_item)['values']
+        new_first_value = int(current_values[1]) + 1
+        updated_values = ('-', str(new_first_value),) + tuple(current_values[2:])
+        orders.item(matching_item, values=updated_values)
     else:
-        # If there are no matching articles, insert a new one with first value '1'
-        orders.insert('', 'end', values=('1', articolo[3], articolo[5], ''))
+        orders.insert('', 'end', values=('-','1', articolo[3], articolo[5], ''))
 
-
-
-
-
-def on_select_delete(event, orders):
-    to_delete = orders.selection()[0]
-    orders.delete(to_delete)
-
-
-def on_select_note_edit(event, orders): #click destro per modificare note. "invio" per modificare, "esc" o click fuori per annullare
+def on_select(event, orders):
     region = orders.identify("region", event.x, event.y)
     if region == "cell":
-        col = orders.identify_column(event.x)
+        col_index = orders.identify_column(event.x)
+        col = orders.column(col_index)['id']
         item = orders.identify_row(event.y)
-        if col == '#4':
-            bbox = orders.bbox(item, '#4')
+        if col == 'note':
+            on_select_note_edit(orders, item, col_index)
+        elif col == 'rimuovi':
+            on_select_delete(orders)
 
-            if bbox:
-                x, y, width, height = bbox
-                current_value = orders.item(item)['values'][3]
-                edit_entry = ttk.Entry(orders, width=20)
-                edit_entry.insert(0, current_value)
 
-                def save_edit(event):
-                    new_value = edit_entry.get()
-                    orders.set(item, '#4', new_value)
-                    edit_entry.destroy()
+def on_select_delete(orders):
+    selected_items = orders.selection()
+    if not selected_items:
+        return
 
-                edit_entry.bind("<Return>", save_edit)
+    selected_item = selected_items[0]
+    current_values = orders.item(selected_item, 'values')
 
-                def cancel_edit(event):
-                    edit_entry.destroy()
-                    orders.set(item, '#4', current_value)
+    if current_values[1] == '1':
+        orders.delete(selected_item)
+    else:
+        decremented_first_value = int(current_values[1]) - 1
+        updated_values = ('-', str(decremented_first_value),) + tuple(current_values[2:])
+        orders.item(selected_item, values=updated_values)
 
-                edit_entry.bind("<FocusOut>", cancel_edit) #se si vuole salvare clickando al di fuori, modifica in save_edit
-                edit_entry.bind("<Escape>", cancel_edit)
 
-                edit_entry.place(x=x, y=y, width=width, height=height)
-                edit_entry.focus_set()
+
+def on_select_note_edit(orders, item, col_index):
+    # click destro per modificare note. "invio" per modificare, "esc" o click fuori per annullare
+    bbox = orders.bbox(item, 'note')
+
+    if bbox:
+        x, y, width, height = bbox
+        current_value = orders.item(item, 'values')[int(col_index[1:])-1]
+        edit_entry = ttk.Entry(orders, width=width)
+        edit_entry.insert(0, current_value)
+
+        def save_edit(event):
+            new_value = edit_entry.get()
+            orders.set(item, 'note', new_value)
+            edit_entry.destroy()
+
+        edit_entry.bind("<Return>", save_edit) # invio
+
+        def cancel_edit(event):
+            edit_entry.destroy()
+            orders.set(item, 'note', current_value)
+
+        edit_entry.bind("<FocusOut>", cancel_edit) #se si vuole salvare clickando al di fuori, modifica in save_edit
+        edit_entry.bind("<Escape>", cancel_edit)
+
+        edit_entry.place(x=x, y=y, width=width, height=height)
+        edit_entry.update_idletasks()
+        def set_focus():
+            edit_entry.focus_set()
+        edit_entry.after_idle(set_focus)
 
 
 def draw_cassa(notebook):
@@ -164,6 +178,8 @@ def draw_cassa(notebook):
                                           if (item[0] == item_listino[0] and item[4] == tipologia)}))
 
             for i, articolo in enumerate(lista_articoli):
+                #if articolo[sfondo] == hex:
+                #    colore = 'black'
                 ttk.Button(canvas, text=articolo[3], command=lambda arti = articolo: insert_order(orders, arti)).grid(row=i // 6, column=i % 6, padx=5, pady=5)
 
             canvas.update_idletasks()
@@ -171,18 +187,29 @@ def draw_cassa(notebook):
 
     # gestisco order_frame
 
-    orders = ttk.Treeview(order_frame, columns=('qta', 'piatto', 'prezzo', 'note'), show='headings')
+    orders = ttk.Treeview(order_frame, columns=('rimuovi','qta', 'piatto', 'prezzo', 'note'), show='headings')
+    orders.heading('rimuovi', text='Rimuovi')
     orders.heading('qta', text='Qtà')
     orders.heading('piatto', text='Piatto')
     orders.heading('prezzo', text='Prezzo')
     orders.heading('note', text='Note')
 
     orders.pack(side='left', fill='both', expand=True)
-    orders.bind("<Double-1>", lambda event, ord=orders: on_select_delete(event, ord))
-    orders.bind("<Button-3>", lambda event, ord=orders: on_select_note_edit(event, ord)) #click destro per modificare note. "invio" per modificare, "esc" per annullare
+    orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord)) #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare
 
+    # gestisco bill_frame
+    bill = tk.DoubleVar()
+    bill.set(0.00)
 
-    label3 = ttk.Label(bill_frame, text="bill_frame", background='green')
-    label3.pack(expand=True, fill='both')
+    totals_label = ttk.Label(bill_frame, text="Totale: ")
+    totals_label.pack(side='left', padx=50)
 
+    bill_formatted_text= tk.StringVar()
+    update_bill(bill, bill_formatted_text)
 
+    bill_label = tk.Label(bill_frame, textvariable=bill_formatted_text)
+    bill_label.pack(side='left')
+
+def update_bill(double_var, formatted_var):
+    double_var.set(3.00)
+    formatted_var.set(f"€ {double_var.get():,.2f}")
