@@ -1,5 +1,5 @@
-from flask import Blueprint, current_app, jsonify
-from .connection import get_connection
+from flask import Blueprint
+from .connection import get_connection, jason, single_jason
 
 bp = Blueprint('tipologie', __name__)
 
@@ -8,12 +8,12 @@ bp = Blueprint('tipologie', __name__)
 def get_tipologie():
     cur = get_connection().cursor()
     cur.execute("SELECT * FROM tipologie")
-    return jsonify(cur.fetchall())
+    return jason(cur)
 
 
 @bp.get('/tipologie/<int:tipologie_id>')
 def get_tipologia(tipologie_id):
     cur = get_connection().cursor()
     cur.execute("SELECT * FROM tipologie where id = {};".format(tipologie_id))
-    return jsonify(cur.fetch())
+    return single_jason(cur)
 

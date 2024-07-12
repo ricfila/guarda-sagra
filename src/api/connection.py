@@ -2,6 +2,7 @@ import sqlite3
 import psycopg2
 import threading
 from config import configs, init
+from flask import jsonify
 import os
 
 # Usa un oggetto threading.local per mantenere una connessione per ogni thread
@@ -55,3 +56,13 @@ def sqlite_enabled():
     except:
         cf = None
     return cf == "true" or cf == "True"
+
+
+def jason(cur):
+    col_names = [desc[0] for desc in cur.description]
+    return jsonify([dict(zip(col_names, row)) for row in cur.fetchall()])
+
+
+def single_jason(cur):
+    col_names = [desc[0] for desc in cur.description]
+    return jsonify(dict(zip(col_names, cur.fetchone())))
