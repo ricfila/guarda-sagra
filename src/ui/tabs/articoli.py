@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, colorchooser
 import requests
 import json
-from config import configs
+from config import api_get, api_post
 
 
 def draw_articoli(notebook, profile):
@@ -24,12 +24,18 @@ def draw_articoli(notebook, profile):
 
     # articoli_frame
     # tipologie_frame
-    tipologias = []
+    tipologie = api_get('/tipologie')
+    #[[1, 'Primi', 1, None, True],
+    # [2, 'Secondi', 2, None, True],
+    # [3, 'Secondi pesce', 2, None, True],
+    # [4, 'Contorni', 3, None, True],
+    # [5, 'Bevande', 10, None, True],
+    # [6, 'Menu speciali', 1, None, True]]
 
     def choose_color():
         color = colorchooser.askcolor()[1]  # Returns (color_rgb, color_name)
         return color
-
+    '''
     def create_tipologia():
         name = name_entry.get().strip()
         if name and selected_color:
@@ -118,5 +124,5 @@ def draw_articoli(notebook, profile):
             global selected_color
             selected_color = choose_color()
 
-
+    '''
     # listini_frame

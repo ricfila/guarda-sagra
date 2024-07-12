@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import functools
 from config import api_get, api_post
+import requests
+import json
 
 
 
@@ -9,8 +11,7 @@ def salva(orders, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza 
     data_to_send = {}
 
     for item in valori_ordine:
-        column_name, column_value = item
-        data_to_send[column_name] = column_value
+        data_to_send[item[0]] = item[1]
 
     articles = []
     for item in orders.get_children():
@@ -23,9 +24,9 @@ def salva(orders, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza 
 
     response = api_post('/ordini', data_to_send)
 
-    if response.status_code == 200: #TODO da testare: riesco a leggere response.status_code anche senza importare response?
-        for item in orders.get_children():
-            orders.delete(item)
+    #if response.status_code == 200: #TODO non so cosa mi ritorna una post corretta, da aggiornare quando si riesce a fare le post
+        #for item in orders.get_children():
+            #orders.delete(item)
 
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)

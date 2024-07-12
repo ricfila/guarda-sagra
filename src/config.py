@@ -41,12 +41,12 @@ def init():
 def api_url():
     return 'http://' + configs['API']['server'] + ':' + configs['API']['port']
 def api_get(query_url, id_profilo = -1, id_listino = -1):
-    request_url = api_url()
+    request_url = api_url() + query_url
 
     if id_profilo != -1:
-        request_url += query_url + str(id_profilo)
+        request_url += str(id_profilo)
     elif id_listino != -1:
-        request_url += query_url + str(id_listino)
+        request_url += str(id_listino)
 
     response = requests.get(request_url)
 
