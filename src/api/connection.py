@@ -2,6 +2,7 @@ import sqlite3
 import psycopg2
 import threading
 from config import configs, init
+from flask import jsonify
 import os
 
 # Usa un oggetto threading.local per mantenere una connessione per ogni thread
@@ -26,8 +27,8 @@ def get_connection():
 
 def create_connection():
     cur = get_connection().cursor()
-    path_to_sqlite_script = os.path.join(os.getcwd(), "../guarda-sagra-sqlite.sql")
-    path_to_postgres_script = os.path.join(os.getcwd(), "../guarda-sagra-postgres.sql")
+    path_to_sqlite_script = os.path.join(os.getcwd(), "guarda-sagra-sqlite.sql")
+    path_to_postgres_script = os.path.join(os.getcwd(), "guarda-sagra-postgres.sql")
 
     # Eventuale creazione delle tabelle
     if sqlite_enabled():
@@ -55,3 +56,13 @@ def sqlite_enabled():
     except:
         cf = None
     return cf == "true" or cf == "True"
+
+
+def jason(cur):
+    col_names = [desc[0] for desc in cur.description]
+    return jsonify([dict(zip(col_names, row)) for row in cur.fetchall()])
+
+
+def single_jason(cur):
+    col_names = [desc[0] for desc in cur.description]
+    return jsonify(dict(zip(col_names, cur.fetchone())))
