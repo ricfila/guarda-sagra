@@ -17,11 +17,7 @@ def get_api(query_url, id_profilo = -1, id_listino = -1):
     elif id_listino != -1:
         request_url = api_url() + query_url + str(id_listino)
 
-    if request_url != "":
-        response = requests.get(request_url)
-    else:
-        messagebox.showerror("Errore", "Chiamata a server errata. Contattare l'amministratore di sistema:"
-                                       "\ni parametri per la chiamata della funzione get_api() sono assenti.\n")
+    response = requests.get(request_url)
 
     if response.status_code == 200:
         return response.json()
@@ -32,19 +28,22 @@ def salva(orders, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza 
 # aggiungi cliente coperti tavolo, note ordine, asporto, veloce, omaggio, servizio
 # totale non necessario
     url_ordini = api_url() + '/ordini'
-    data_to_send = []
 
-    item_data = {}
+
+    data_to_send = {}
+
     for item in valori_ordine:
         column_name, column_value = item
-        item_data[column_name] = column_value
-    data_to_send.append(item_data)
+        data_to_send[column_name] = column_value
 
+    articles = []
     for item in orders.get_children():
         item_data = {}
         for column in ('qta', 'note', 'id_listino', 'id_articolo'):
             item_data[column] = orders.item(item, 'values')[orders['columns'].index(column)]
-        data_to_send.append(item_data)
+        articles.append(item_data)
+
+    data_to_send['articoli'] = articles
 
     # Convert data to JSON format
     json_data = json.dumps(data_to_send)
@@ -65,6 +64,8 @@ def max_4_chars_and_only_digits(string):
 def max_4_chars(text):
     return len(text) <= 4
 
+def replace_single_quotes(input_string):
+    return input_string.replace("'", "''")
 
 def insert_order(orders, articolo, id_listino):
     matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][2] == articolo[2]), None)
@@ -156,7 +157,7 @@ def update_bill(orders):
     bill.set(total_price)
     bill_formatted_text.set(f"€ {bill.get():,.2f}")
 
-def draw_cassa(notebook):
+def draw_cassa(notebook, profile):
     tab = ttk.Frame(notebook)
     notebook.add(tab, text="Cassa")
 
@@ -283,7 +284,7 @@ def draw_cassa(notebook):
                 #if articolo[sfondo] == hex: #TODO
                 #    colore = 'black'
                 button = ttk.Button(frame_buttons, text=articolo[2],
-                                    command=functools.partial(insert_order, orders, articolo, item_listino))
+                                    command=functools.partial(insert_order, orders, articolo, item_listino[0]))
                 button.grid(row=i // 6, column=i % 6, padx=5, pady=5)
             canvas.update_idletasks()
             canvas.configure(scrollregion=canvas.bbox("all"))
@@ -301,11 +302,10 @@ def draw_cassa(notebook):
     bill_label = tk.Label(bill_frame, textvariable=bill_formatted_text)
     bill_label.pack(side='left')
     update_bill(orders)
-    #TODO
-    # aggiungi asporto, veloce, omaggio, servizio
-    # totale non necessario
-    def prepara_salvataggio(orders):
+
+    def prepara_salvataggio(orders, profile_id):
         valori_ordine = (
+            ('id_profilo', profile_id),
             ('nome_cliente', str(cliente_name.get())),
             ('coperti', str(coperti_name.get())),
             ('tavolo', str(tavolo_name.get())),
@@ -316,7 +316,7 @@ def draw_cassa(notebook):
             ('servizio', str(servizio_value.get()))
         )
         salva(orders, valori_ordine)
-    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, orders))
+    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, orders, profile[0]))
     salva_tutto.pack(side='bottom', pady=(0, 60))
 
     # gestisco options_frame

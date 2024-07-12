@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
-from ttkthemes import ThemedTk
-import psycopg2  # used for postgresql queries
+from tkinter import ttk, messagebox
+import requests
+
+from config import configs
 from main import main
 def open_profiles_window(title, size):
     profiles_window = tk.Tk()
@@ -23,37 +23,38 @@ def open_profiles_window(title, size):
     profiles_window.mainloop()
 
 
+def api_url():
+    return 'http://' + configs['API']['server'] + ':' + configs['API']['port']
+
+def get_api(query_url, id_profilo = -1):
+    request_url = api_url() + query_url
+
+    if id_profilo != -1:
+        request_url = request_url + '/' + str(id_profilo)
+
+    response = requests.get(request_url)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        messagebox.showerror(f"Errore nell'accesso ai profili: {response.status_code} - {response.text}")
+
 
 def profiles_choice(profiles_window, frame):
-    profiles = ['Cassa 1', 'Cassa 2', 'Cassa 3', 'Cassa 4']  # TODO
-    '''
-    # Connect to DB and load profile names
-    conn = psycopg2.connect(database="db_name",
-                            host="db_host",
-                            user="db_user",
-                            password="db_pass",
-                            port="12345")
-    cursor = conn.cursor()
-    cursor.execute("SELECT nome FROM casse ORDER BY nome")
-    profiles = cursor.fetchall()
-    cursor.execute("SELECT password FROM configurazione")
-    password_from_db = cursor.fetchall() # TODO integrare funzioni di hashing con salting per non avere funzioni salvate in chiaro su DB.
-    conn.close()
-    '''
-    profiles.append('Admin')  # Add to profile choice the admin option. #TODO 2 tipi di admin?
+    profiles = get_api("/profili")
 
     for i, profile in enumerate(profiles):  # Inserts profile choice buttons
         ttk.Button(frame,
-                   text=profile,
+                   text=profile[1],
                    command=lambda profile=profile: profile_selection(profiles_window, profile)).grid(row=i // 4,
                                                                                    column=i % 4,
                                                                                    padx=5,
                                                                                    pady=5)
 
 def profile_selection(profiles_window, profile):
-    if profile == 'Admin':
-        open_login_window(profiles_window, profile)
-    else:
+    #if profile == 'Admin': #TODO INSERIMENTO PASSWORD
+    #    open_login_window(profiles_window, profile)
+    #else:
         profiles_window.destroy()
         main(profile)
 

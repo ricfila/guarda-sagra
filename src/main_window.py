@@ -8,9 +8,8 @@ import config
 from ui.tabs import *
 class Main_window(tk.Tk):
     def __init__(self, profile):
-        print(profile) #TODO inserire le modifiche date dalla scelta profilo
         super().__init__()
-        self.title(f'Guarda Sagra - ' + profile)
+        self.title(f'Guarda Sagra - ' + profile[1])
         self.state('zoomed') # Apre la finestra massimizzata
         self.draw_tabs(profile) # TODO forse da rivedere
         self.create_menu()
@@ -19,27 +18,18 @@ class Main_window(tk.Tk):
 
     def draw_tabs(self, profile):
         notebook = ttk.Notebook(self)
-        #TODO inserisci quì parti condivise tra tutti i profili
-        #TODO parte_condivisa = self.create_tab(notebook, "Condivisa")
 
-        # Schermate condivise tra tutti i profili
-        cassa.draw_cassa(notebook)
-        articoli.draw_articoli(notebook)
-        '''
-        if profile == 'Admin':
-            self.draw_tab(notebook, "Listini")
-            self.draw_tab(notebook, "Ingredienti")
-            self.draw_tab(notebook, "Tipologie")
-            self.draw_tab(notebook, "Sconti")
-            self.draw_tab(notebook, "Profili")
-            self.draw_tab(notebook, "Stati")
-            self.draw_tab(notebook, "Tipo Pagamento")
-            self.draw_tab(notebook, "Statistiche Generali")
-        else:
-            self.draw_tab(notebook, "Avanzamento Stati")
-            self.draw_tab(notebook, "Scorte")
-            self.draw_tab(notebook, "Chiusura Cassa")
-        '''
+        if profile[2] % 2 == 0 or profile[2] == 1:
+            cassa.draw_cassa(notebook, profile)
+        if profile[2] % 3 == 0 or profile[2] == 1:
+            pass  # Temporaneamente libero
+        if profile[2] % 5 == 0 or profile[2] == 1:
+            pass  # articoli.draw_articoli(notebook)  #modifica listini, articoli e tipologie
+        if profile[2] % 7 == 0 or profile[2] == 1:
+            pass  # modifica profili, aree e listini collegati
+        if profile[2] % 11 == 0 or profile[2] == 1:
+            pass  # statistiche e report
+
         notebook.pack(expand=True, fill="both")
 
     def create_menu(self):
@@ -49,27 +39,6 @@ class Main_window(tk.Tk):
         file_menu.add_command(label='Open', command=lambda: print('Open file'))
         file_menu.add_separator()
         menu.add_cascade(label='File', menu=file_menu)
-        '''
-        # another sub menu
-        help_menu = tk.Menu(menu, tearoff=False)
-        help_menu.add_command(label='Help entry', command=lambda: print(help_check_string.get()))
-
-        help_check_string = tk.StringVar()
-        help_menu.add_checkbutton(label='check', onvalue='on', offvalue='off', variable=help_check_string)
-
-        menu.add_cascade(label='Help', menu=help_menu)
-
-        # add another menu to the main menu, this one should have a sub menu
-        # try to read the website below and add a submenu
-        # docs: https://www.tutorialspoint.com/python/tk_menu.htm
-        exercise_menu = tk.Menu(menu, tearoff=False)
-        exercise_menu.add_command(label='exercise test 1')
-        menu.add_cascade(label='Exercise', menu=exercise_menu)
-
-        exercise_sub_menu = tk.Menu(menu, tearoff=False)
-        exercise_sub_menu.add_command(label='some more stuff')
-        exercise_menu.add_cascade(label='more stuff', menu=exercise_sub_menu)
-        '''
         self.configure(menu=menu)
 
 class Menu(ttk.Frame):
@@ -113,25 +82,3 @@ class Menu(ttk.Frame):
 
         # entry layout
         entry.place(relx=0.5, rely=0.95, relwidth=0.9, anchor='center')
-
-
-class Frame1(ttk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.place(relx=0.3, y=0, relwidth=0.7, relheight=1)
-        Entry(self, 'Entry 1', 'Button 1', 'green')
-        Entry(self, 'Entry 2', 'Button 2', 'blue')
-        Entry(self, 'Entry 3', 'Button 3', 'green')
-
-
-class Entry(ttk.Frame):
-    def __init__(self, parent, label_text, button_text, label_background):
-        super().__init__(parent)
-
-        label = ttk.Label(self, text=label_text, background=label_background)
-        button = ttk.Button(self, text=button_text)
-
-        label.pack(expand=True, fill='both')
-        button.pack(expand=True, fill='both', pady=10)
-
-        self.pack(side='left', expand=True, fill='both', padx=20, pady=20)

@@ -26,8 +26,8 @@ def get_connection():
 
 def create_connection():
     cur = get_connection().cursor()
-    path_to_sqlite_script = os.path.join(os.getcwd(), "../guarda-sagra-sqlite.sql")
-    path_to_postgres_script = os.path.join(os.getcwd(), "../guarda-sagra-postgres.sql")
+    path_to_sqlite_script = os.path.join(os.getcwd(), "guarda-sagra-sqlite.sql")
+    path_to_postgres_script = os.path.join(os.getcwd(), "guarda-sagra-postgres.sql")
 
     # Eventuale creazione delle tabelle
     if sqlite_enabled():
