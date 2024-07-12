@@ -6,15 +6,28 @@ import json
 from config import configs
 
 
+def api_url():
+    return 'http://' + configs['API']['server'] + ':' + configs['API']['port']
+
+def get_api(query_url, id_profilo):
+    url_listini = api_url() + query_url + str(id_profilo)
+    response = requests.get(url_listini)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Error saving data: {response.status_code} - {response.text}")
+
+
 def salva(orders): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
-    pass
-    '''
-    url = 'http://' + configs['API']['server'] + ':' + configs['API']['port'] + '/ordini'
+# aggiungi cliente coperti tavolo, note ordine, asporto, veloce, omaggio, servizio
+# totale non necessario
+    url_ordini = api_url() + '/ordini'
     data_to_send = []
 
     for item in orders.get_children():
         item_data = {}
-        for column in ('qta', 'piatto', 'prezzo', 'note', 'id_listino', 'id_articolo'):
+        for column in ('qta', 'note', 'id_listino', 'id_articolo'):
             item_data[column] = orders.item(item, 'values')[orders['columns'].index(column)]
         data_to_send.append(item_data)
 
@@ -23,13 +36,12 @@ def salva(orders): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovver
 
     # Send POST request
     headers = {'Content-Type': 'application/json'}
-    response = requests.post(url, data=json_data, headers=headers)
+    response = requests.post(url_ordini, data=json_data, headers=headers)
 
     if response.status_code == 200:
         print("Data saved successfully!")
     else:
         print(f"Error saving data: {response.status_code} - {response.text}")
-    '''
 
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
@@ -209,15 +221,21 @@ def draw_cassa(notebook):
     note_name_entry.pack(side='left', padx=(2, 20), expand=True, fill='x')
 
     # gestisco choices_frame
+    # TODO chiamata con nome cassa per richiedere listini
+    # TODO per ogni listino, chiamata di richiesta articoli ()
+    lista_listini = get_api('/listini_cassa/', 2)  #TODO SOSTITUISCI NUMERO CON ID PROFILO
+
     join_listini_articoli = [[1, 'Listino 1', 1, 'Articolo 1', 'Primi', 5.00],[2, 'Listino 2', 10, 'Articolo 10', 'Secondi', 9.5]] ###############################COPIA DA TXT
 
-    lista_listini = sorted({(item[0], item[1]) for item in join_listini_articoli})
     listini_notebook = ttk.Notebook(choices_frame)
     listini_notebook.pack(fill='both', expand=True)
 
     for item_listino in lista_listini:
         listino = ttk.Frame(listini_notebook)
         listini_notebook.add(listino, text=item_listino[1])
+
+
+
         lista_tipologie = sorted(list({item[4] for item in join_listini_articoli if item[0] == item_listino[0]}))
 
         canvas = tk.Canvas(listino)
@@ -270,7 +288,7 @@ def draw_cassa(notebook):
     bill_label.pack(side='left')
     update_bill(orders)
 
-    salva_tutto = ttk.Button(bill_frame, text="Salva", command=salva(orders))
+    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(salva, orders))
     salva_tutto.pack(side='bottom', pady=(0, 60))
 
     # gestisco options_frame
