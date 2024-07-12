@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import functools
 import requests
 import json
@@ -9,21 +9,36 @@ from config import configs
 def api_url():
     return 'http://' + configs['API']['server'] + ':' + configs['API']['port']
 
-def get_api(query_url, id_profilo):
-    url_listini = api_url() + query_url + str(id_profilo)
-    response = requests.get(url_listini)
+def get_api(query_url, id_profilo = -1, id_listino = -1):
+    request_url = ""
+
+    if id_profilo != -1:
+        request_url = api_url() + query_url + str(id_profilo)
+    elif id_listino != -1:
+        request_url = api_url() + query_url + str(id_listino)
+
+    if request_url != "":
+        response = requests.get(request_url)
+    else:
+        messagebox.showerror("Errore", "Chiamata a server errata. Contattare l'amministratore di sistema:"
+                                       "\ni parametri per la chiamata della funzione get_api() sono assenti.\n")
 
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Error saving data: {response.status_code} - {response.text}")
+        messagebox.showerror(f"Errore nel salvataggio dei dati: {response.status_code} - {response.text}")
 
-
-def salva(orders): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
+def salva(orders, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
 # aggiungi cliente coperti tavolo, note ordine, asporto, veloce, omaggio, servizio
 # totale non necessario
     url_ordini = api_url() + '/ordini'
     data_to_send = []
+
+    item_data = {}
+    for item in valori_ordine:
+        column_name, column_value = item
+        item_data[column_name] = column_value
+    data_to_send.append(item_data)
 
     for item in orders.get_children():
         item_data = {}
@@ -39,9 +54,10 @@ def salva(orders): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovver
     response = requests.post(url_ordini, data=json_data, headers=headers)
 
     if response.status_code == 200:
-        print("Data saved successfully!")
+        for item in orders.get_children():
+            orders.delete(item)
     else:
-        print(f"Error saving data: {response.status_code} - {response.text}")
+        messagebox.showerror(f"Errore nel salvataggio dei dati: {response.status_code} - {response.text}")
 
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
@@ -50,16 +66,17 @@ def max_4_chars(text):
     return len(text) <= 4
 
 
-def insert_order(orders, articolo):
-    matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][2] == articolo[3]), None)
-
+def insert_order(orders, articolo, id_listino):
+    matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][2] == articolo[2]), None)
+    # [[articolo_id, 'SPAGHETTI AL POMODORO', nome_breve='SPAGHETTI POMODORO', '5.50', sfondo=None, id_tipologia = 1, 'Primi', tipologia_sfondo=None], ecc]
+    #[1, 'Listino 1', 1, 'Articolo 1', 'Primi', 5.00]
     if matching_item:
         current_values = orders.item(matching_item)['values']
         new_first_value = int(current_values[1]) + 1
         updated_values = ('-', str(new_first_value),) + tuple(current_values[2:])
         orders.item(matching_item, values=updated_values)
     else:
-        orders.insert('', 'end', values=('-','1', articolo[3], articolo[5], '', articolo[0], articolo[2]))
+        orders.insert('', 'end', values=('-','1', articolo[2], articolo[3], '', id_listino, articolo[0]))
     update_bill(orders)
 
 def on_select(event, orders):
@@ -87,7 +104,7 @@ def on_select_delete(orders, item):
 
 
 def on_select_note_edit(orders, item, col_index):
-    # click destro per modificare note. "invio" per modificare, "esc" o click fuori per annullare
+    # click destro per modificare note. "invio" o click fuori per modificare, "esc" per annullare
     bbox = orders.bbox(item, 'note')
 
     if bbox:
@@ -102,12 +119,13 @@ def on_select_note_edit(orders, item, col_index):
             edit_entry.destroy()
 
         edit_entry.bind("<Return>", save_edit) # invio
+        edit_entry.bind("<FocusOut>", save_edit)  # se si vuole eliminare la modifica clickando al di fuori, modifica in cancel_edit
 
         def cancel_edit(event):
             edit_entry.destroy()
             orders.set(item, 'note', current_value)
 
-        edit_entry.bind("<FocusOut>", cancel_edit) #se si vuole salvare clickando al di fuori, modifica in save_edit
+
         edit_entry.bind("<Escape>", cancel_edit)
 
         edit_entry.place(x=x, y=y, width=width, height=height)
@@ -214,18 +232,14 @@ def draw_cassa(notebook):
     tavolo_name_entry.pack(side='left', padx=(2, 10))
 
     # note
-    note_label = ttk.Label(s_info_frame, text="Note:")
-    note_name = tk.StringVar()
-    note_name_entry = ttk.Entry(s_info_frame, textvariable=note_name)
-    note_label.pack(side='left', padx=(10, 2))
-    note_name_entry.pack(side='left', padx=(2, 20), expand=True, fill='x')
+    note_ordine_label = ttk.Label(s_info_frame, text="Note:")
+    note_ordine_name = tk.StringVar()
+    note_ordine_name_entry = ttk.Entry(s_info_frame, textvariable=note_ordine_name)
+    note_ordine_label.pack(side='left', padx=(10, 2))
+    note_ordine_name_entry.pack(side='left', padx=(2, 20), expand=True, fill='x')
 
     # gestisco choices_frame
-    # TODO chiamata con nome cassa per richiedere listini
-    # TODO per ogni listino, chiamata di richiesta articoli ()
-    lista_listini = get_api('/listini_cassa/', 2)  #TODO SOSTITUISCI NUMERO CON ID PROFILO
-
-    join_listini_articoli = [[1, 'Listino 1', 1, 'Articolo 1', 'Primi', 5.00],[2, 'Listino 2', 10, 'Articolo 10', 'Secondi', 9.5]] ###############################COPIA DA TXT
+    lista_listini = get_api('/listini_cassa/', id_profilo=2)  #TODO SOSTITUISCI NUMERO CON ID PROFILO
 
     listini_notebook = ttk.Notebook(choices_frame)
     listini_notebook.pack(fill='both', expand=True)
@@ -234,9 +248,9 @@ def draw_cassa(notebook):
         listino = ttk.Frame(listini_notebook)
         listini_notebook.add(listino, text=item_listino[1])
 
+        lista_articoli= get_api('/articoli_listino_tipologie/', id_listino = item_listino[0] )
 
-
-        lista_tipologie = sorted(list({item[4] for item in join_listini_articoli if item[0] == item_listino[0]}))
+        lista_tipologie = sorted(list({(item[5], item[6]) for item in lista_articoli}))
 
         canvas = tk.Canvas(listino)
         canvas.pack(side='left', fill='both', expand=True)
@@ -253,7 +267,7 @@ def draw_cassa(notebook):
             frame_tipologia = ttk.Frame(frame_inside_canvas)
             frame_tipologia.pack(side='top', fill='x')
 
-            label_tipologia = ttk.Label(frame_tipologia, text=tipologia)
+            label_tipologia = ttk.Label(frame_tipologia, text=tipologia[1])
             label_tipologia.pack(side='left', padx=10)
 
             riga_nera = tk.Frame(frame_tipologia, height=1, width=300, bg='black')
@@ -262,14 +276,14 @@ def draw_cassa(notebook):
             frame_buttons = tk.Frame(frame_inside_canvas)
             frame_buttons.pack(side='top', fill='both', expand=True)
 
-            lista_articoli = sorted(list({tuple(item) for item in join_listini_articoli
-                                          if (item[0] == item_listino[0] and item[4] == tipologia)}))
+            articoli_per_tipologia = sorted(list({tuple(item) for item in lista_articoli
+                                          if  item[5] == tipologia[0]}))
 
-            for i, articolo in enumerate(lista_articoli):
+            for i, articolo in enumerate(articoli_per_tipologia):
                 #if articolo[sfondo] == hex: #TODO
                 #    colore = 'black'
-                button = ttk.Button(frame_buttons, text=articolo[3],
-                                    command=functools.partial(insert_order, orders, articolo))
+                button = ttk.Button(frame_buttons, text=articolo[2],
+                                    command=functools.partial(insert_order, orders, articolo, item_listino))
                 button.grid(row=i // 6, column=i % 6, padx=5, pady=5)
             canvas.update_idletasks()
             canvas.configure(scrollregion=canvas.bbox("all"))
@@ -287,8 +301,22 @@ def draw_cassa(notebook):
     bill_label = tk.Label(bill_frame, textvariable=bill_formatted_text)
     bill_label.pack(side='left')
     update_bill(orders)
-
-    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(salva, orders))
+    #TODO
+    # aggiungi asporto, veloce, omaggio, servizio
+    # totale non necessario
+    def prepara_salvataggio(orders):
+        valori_ordine = (
+            ('nome_cliente', str(cliente_name.get())),
+            ('coperti', str(coperti_name.get())),
+            ('tavolo', str(tavolo_name.get())),
+            ('note_ordine', str(note_ordine_name.get())),
+            ('asporto', str(asporto_value.get())),
+            ('veloce', str(veloce_value.get())),
+            ('omaggio',str(omaggio_value.get())),
+            ('servizio', str(servizio_value.get()))
+        )
+        salva(orders, valori_ordine)
+    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, orders))
     salva_tutto.pack(side='bottom', pady=(0, 60))
 
     # gestisco options_frame
