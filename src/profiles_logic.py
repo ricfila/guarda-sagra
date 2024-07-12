@@ -2,8 +2,7 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk, messagebox
 import requests
-
-from config import configs
+from config import api_get
 from main import main
 def open_profiles_window(title, size):
     profiles_window = tk.Tk()
@@ -22,26 +21,8 @@ def open_profiles_window(title, size):
 
     profiles_window.mainloop()
 
-
-def api_url():
-    return 'http://' + configs['API']['server'] + ':' + configs['API']['port']
-
-def get_api(query_url, id_profilo = -1):
-    request_url = api_url() + query_url
-
-    if id_profilo != -1:
-        request_url = request_url + '/' + str(id_profilo)
-
-    response = requests.get(request_url)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        messagebox.showerror(f"Errore nell'accesso ai profili: {response.status_code} - {response.text}")
-
-
 def profiles_choice(profiles_window, frame):
-    profiles = get_api("/profili")
+    profiles = api_get("/profili")
 
     for i, profile in enumerate(profiles):  # Inserts profile choice buttons
         ttk.Button(frame,

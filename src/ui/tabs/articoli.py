@@ -2,11 +2,13 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, colorchooser
 import requests
 import json
-'''
+from config import configs
 
-def draw_articoli(notebook):
+
+def draw_articoli(notebook, profile):
     tab = ttk.Frame(notebook)
     notebook.add(tab, text="Articoli")
+
     # definisco struttura-notebook principale
     articoli_notebook = ttk.Notebook(tab)
     articoli_notebook.pack(fill='both', expand=True)
@@ -118,4 +120,3 @@ def draw_articoli(notebook):
 
 
     # listini_frame
-'''

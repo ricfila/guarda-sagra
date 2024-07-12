@@ -1,35 +1,11 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 import functools
-import requests
-import json
-from config import configs
+from config import api_get, api_post
 
 
-def api_url():
-    return 'http://' + configs['API']['server'] + ':' + configs['API']['port']
-
-def get_api(query_url, id_profilo = -1, id_listino = -1):
-    request_url = ""
-
-    if id_profilo != -1:
-        request_url = api_url() + query_url + str(id_profilo)
-    elif id_listino != -1:
-        request_url = api_url() + query_url + str(id_listino)
-
-    response = requests.get(request_url)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        messagebox.showerror(f"Errore nel salvataggio dei dati: {response.status_code} - {response.text}")
 
 def salva(orders, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
-# aggiungi cliente coperti tavolo, note ordine, asporto, veloce, omaggio, servizio
-# totale non necessario
-    url_ordini = api_url() + '/ordini'
-
-
     data_to_send = {}
 
     for item in valori_ordine:
@@ -45,18 +21,11 @@ def salva(orders, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza 
 
     data_to_send['articoli'] = articles
 
-    # Convert data to JSON format
-    json_data = json.dumps(data_to_send)
+    response = api_post('/ordini', data_to_send)
 
-    # Send POST request
-    headers = {'Content-Type': 'application/json'}
-    response = requests.post(url_ordini, data=json_data, headers=headers)
-
-    if response.status_code == 200:
+    if response.status_code == 200: #TODO da testare: riesco a leggere response.status_code anche senza importare response?
         for item in orders.get_children():
             orders.delete(item)
-    else:
-        messagebox.showerror(f"Errore nel salvataggio dei dati: {response.status_code} - {response.text}")
 
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
@@ -69,8 +38,7 @@ def replace_single_quotes(input_string):
 
 def insert_order(orders, articolo, id_listino):
     matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][2] == articolo[2]), None)
-    # [[articolo_id, 'SPAGHETTI AL POMODORO', nome_breve='SPAGHETTI POMODORO', '5.50', sfondo=None, id_tipologia = 1, 'Primi', tipologia_sfondo=None], ecc]
-    #[1, 'Listino 1', 1, 'Articolo 1', 'Primi', 5.00]
+
     if matching_item:
         current_values = orders.item(matching_item)['values']
         new_first_value = int(current_values[1]) + 1
@@ -240,7 +208,7 @@ def draw_cassa(notebook, profile):
     note_ordine_name_entry.pack(side='left', padx=(2, 20), expand=True, fill='x')
 
     # gestisco choices_frame
-    lista_listini = get_api('/listini_cassa/', id_profilo=2)  #TODO SOSTITUISCI NUMERO CON ID PROFILO
+    lista_listini = api_get('/listini_cassa/', id_profilo=2)  #TODO SOSTITUISCI NUMERO CON ID PROFILO
 
     listini_notebook = ttk.Notebook(choices_frame)
     listini_notebook.pack(fill='both', expand=True)
@@ -249,7 +217,7 @@ def draw_cassa(notebook, profile):
         listino = ttk.Frame(listini_notebook)
         listini_notebook.add(listino, text=item_listino[1])
 
-        lista_articoli= get_api('/articoli_listino_tipologie/', id_listino = item_listino[0] )
+        lista_articoli= api_get('/articoli_listino_tipologie/', id_listino = item_listino[0] )
 
         lista_tipologie = sorted(list({(item[5], item[6]) for item in lista_articoli}))
 

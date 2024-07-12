@@ -24,7 +24,7 @@ class Main_window(tk.Tk):
         if profile[2] % 3 == 0 or profile[2] == 1:
             pass  # Temporaneamente libero
         if profile[2] % 5 == 0 or profile[2] == 1:
-            pass  # articoli.draw_articoli(notebook)  #modifica listini, articoli e tipologie
+            articoli.draw_articoli(notebook, profile)  #modifica listini, articoli e tipologie
         if profile[2] % 7 == 0 or profile[2] == 1:
             pass  # modifica profili, aree e listini collegati
         if profile[2] % 11 == 0 or profile[2] == 1:
