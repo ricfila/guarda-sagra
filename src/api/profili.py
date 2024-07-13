@@ -8,7 +8,7 @@ bp = Blueprint('profili', __name__)
 def get_profili():
     cur = get_connection().cursor()
     try:
-        cur.execute("SELECT * FROM profili;")
+        cur.execute("SELECT * FROM profili ORDER BY nome;")
         return jason(cur)
     except Exception as err:
         print(err)
@@ -18,24 +18,24 @@ def get_profili():
 @bp.get('/profili/<int:profili_id>')
 def get_profilo(profili_id):
     cur = get_connection().cursor()
-    cur.execute("SELECT * FROM profili WHERE id = {};".format(profili_id))
-    return single_jason(cur)
+    cur.execute("SELECT * FROM profili WHERE id = %s;", (profili_id,))
+    if cur.rowcount == 1:
+        return single_jason(cur)
+    else:
+        return "Profilo non trovato", 404
 
 
 @bp.post('/profili')
 def crea_profilo():
     cur = get_connection().cursor()
     content = request.json
-
     try:
-        cur.execute("""INSERT INTO profili (nome, privilegi, area, password, arrotonda)
-                    VALUES ('{nome}', {privilegi}, {area}, '{password}', {arrotonda});"""
-                    .format(nome=content['nome'],
-                            privilegi=content['privilegi'],
-                            area=content['area'],
-                            password=content['password'],
-                            arrotonda=content['arrotonda']))
-        cur.execute("SELECT * FROM profili WHERE id = {};".format(cur.lastrowid))
+        cur.execute("INSERT INTO profili (nome, privilegi, area, password, arrotonda) VALUES (%s, %s, %s, %s, %s) RETURNING id;",
+                    (content['nome'], content['privilegi'], content['area'], content['password'], content['arrotonda']))
+        get_connection().commit()
+
+        id_profilo = cur.fetchone()[0]
+        cur.execute("SELECT * FROM profili WHERE id = %s;", (id_profilo,))
         return single_jason(cur)
     except Exception as err:
         print(err)
@@ -50,16 +50,12 @@ def update_profilo(profili_id):
     if cur.rowcount == 0:
         return "Profilo non trovato", 404
     try:
-        cur.execute("""UPDATE profili
-                    SET nome = '{nome}', privilegi = {privilegi}, area = {area}, password = '{password}', arrotonda = '{arrotonda}'
-                    WHERE id = {id};"""
-                    .format(nome=content['nome'],
-                            privilegi=content['privilegi'],
-                            area=content['area'],
-                            password=content['password'],
-                            arrotonda=content['arrotonda'],
-                            id=profili_id))
-        cur.execute("SELECT * FROM profili WHERE id = {};".format(profili_id))
+        cur.execute("UPDATE profili SET nome = %s, privilegi = %s, area = %s, password = %s, arrotonda = %s WHERE id = %s;",
+                    (content['nome'], content['privilegi'], content['area'], content['password'], content['arrotonda'],
+                     profili_id))
+        get_connection().commit()
+
+        cur.execute("SELECT * FROM profili WHERE id = %s;", (profili_id,))
         return single_jason(cur)
     except Exception as err:
         print(err)

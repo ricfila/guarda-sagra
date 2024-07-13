@@ -26,7 +26,8 @@ def get_connection():
 
 
 def create_connection():
-    cur = get_connection().cursor()
+    conn = get_connection()
+    cur = conn.cursor()
     path_to_sqlite_script = os.path.join(os.getcwd(), "guarda-sagra-sqlite.sql")
     path_to_postgres_script = os.path.join(os.getcwd(), "guarda-sagra-postgres.sql")
 
@@ -43,9 +44,21 @@ def create_connection():
     if cur.fetchone()[0] == 0:
         cur.execute(
             "INSERT INTO profili (nome, privilegi, password) VALUES ('admin', 1, 'c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd472634dfac71cd34ebc35d16ab7fb8a90c81f975113d6c7538dc69dd8de9077ec');")
-        get_connection().commit()
+        conn.commit()
 
-    return get_connection(), cur
+    # Se non è presente un metodo di pagamento, ne inserisce uno di default
+    cur.execute("SELECT COUNT(*) FROM tipi_pagamento;")
+    if cur.fetchone()[0] == 0:
+        cur.execute("INSERT INTO tipi_pagamento (nome, posizione, visibile) VALUES ('Contanti', 1, true);")
+        conn.commit()
+
+    # Se non è presente un'area, ne inserisce una di default
+    cur.execute("SELECT COUNT(*) FROM aree;")
+    if cur.fetchone()[0] == 0:
+        cur.execute("INSERT INTO aree (nome, coperto, asporto) VALUES ('Default, 0, 0');")
+        conn.commit()
+
+    return conn, cur
 
 
 def sqlite_enabled():
