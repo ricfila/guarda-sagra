@@ -26,7 +26,7 @@ def profiles_choice(profiles_window, frame):
 
     for i, profile in enumerate(profiles):  # Inserts profile choice buttons
         ttk.Button(frame,
-                   text=profile[1],
+                   text=profile['nome'],
                    command=lambda profile=profile: profile_selection(profiles_window, profile)).grid(row=i // 4,
                                                                                    column=i % 4,
                                                                                    padx=5,

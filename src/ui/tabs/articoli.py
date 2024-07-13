@@ -25,12 +25,13 @@ def draw_articoli(notebook, profile):
     # articoli_frame
     # tipologie_frame
     tipologie = api_get('/tipologie')
-    #[[1, 'Primi', 1, None, True],
-    # [2, 'Secondi', 2, None, True],
-    # [3, 'Secondi pesce', 2, None, True],
-    # [4, 'Contorni', 3, None, True],
-    # [5, 'Bevande', 10, None, True],
-    # [6, 'Menu speciali', 1, None, True]]
+
+    # [{'id': 1, 'nome': 'Primi', 'posizione': 1, 'sfondo': None, 'visibile': True},
+    # {'id': 2, 'nome': 'Secondi', 'posizione': 2, 'sfondo': None, 'visibile': True},
+    # {'id': 3, 'nome': 'Secondi pesce', 'posizione': 2, 'sfondo': None, 'visibile': True},
+    # {'id': 4, 'nome': 'Contorni', 'posizione': 3, 'sfondo': None, 'visibile': True},
+    # {'id': 5, 'nome': 'Bevande', 'posizione': 10, 'sfondo': None, 'visibile': True},
+    # {'id': 6, 'nome': 'Menu speciali', 'posizione': 1, 'sfondo': None, 'visibile': True}]
 
     def choose_color():
         color = colorchooser.askcolor()[1]  # Returns (color_rgb, color_name)

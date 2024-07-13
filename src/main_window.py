@@ -9,9 +9,9 @@ from ui.tabs import *
 class Main_window(tk.Tk):
     def __init__(self, profile):
         super().__init__()
-        self.title(f'Guarda Sagra - ' + profile[1])
-        self.state('zoomed') # Apre la finestra massimizzata
-        self.draw_tabs(profile) # TODO forse da rivedere
+        self.title(f'Guarda Sagra - ' + profile['nome'])
+        self.state('zoomed')  # Apre la finestra massimizzata
+        self.draw_tabs(profile)  # TODO forse da rivedere
         self.create_menu()
         # self.menu = Menu(self)
         # self.frame1 = Frame1(self)
@@ -19,15 +19,15 @@ class Main_window(tk.Tk):
     def draw_tabs(self, profile):
         notebook = ttk.Notebook(self)
 
-        if profile[2] % 2 == 0 or profile[2] == 1:
+        if profile['privilegi'] % 2 == 0 or profile['privilegi'] == 1:
             cassa.draw_cassa(notebook, profile)
-        if profile[2] % 3 == 0 or profile[2] == 1:
+        if profile['privilegi'] % 3 == 0 or profile['privilegi'] == 1:
             pass  # Temporaneamente libero
-        if profile[2] % 5 == 0 or profile[2] == 1:
+        if profile['privilegi'] % 5 == 0 or profile['privilegi'] == 1:
             articoli.draw_articoli(notebook, profile)  #modifica listini, articoli e tipologie
-        if profile[2] % 7 == 0 or profile[2] == 1:
+        if profile['privilegi'] % 7 == 0 or profile['privilegi'] == 1:
             pass  # modifica profili, aree e listini collegati
-        if profile[2] % 11 == 0 or profile[2] == 1:
+        if profile['privilegi'] % 11 == 0 or profile['privilegi'] == 1:
             pass  # statistiche e report
 
         notebook.pack(expand=True, fill="both")

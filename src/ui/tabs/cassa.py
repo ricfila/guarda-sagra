@@ -38,7 +38,7 @@ def replace_single_quotes(input_string):
     return input_string.replace("'", "''")
 
 def insert_order(orders, articolo, id_listino):
-    matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][2] == articolo[2]), None)
+    matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][6] == articolo['id']), None)
 
     if matching_item:
         current_values = orders.item(matching_item)['values']
@@ -46,7 +46,7 @@ def insert_order(orders, articolo, id_listino):
         updated_values = ('-', str(new_first_value),) + tuple(current_values[2:])
         orders.item(matching_item, values=updated_values)
     else:
-        orders.insert('', 'end', values=('-','1', articolo[2], articolo[3], '', id_listino, articolo[0]))
+        orders.insert('', 'end', values=('-','1', articolo['nome_breve'], articolo['prezzo'], '', id_listino, articolo['id']))
     update_bill(orders)
 
 def on_select(event, orders):
@@ -216,11 +216,11 @@ def draw_cassa(notebook, profile):
 
     for item_listino in lista_listini:
         listino = ttk.Frame(listini_notebook)
-        listini_notebook.add(listino, text=item_listino[1])
+        listini_notebook.add(listino, text=item_listino['nome'])
 
-        lista_articoli= api_get('/articoli_listino_tipologie/', id_listino = item_listino[0] )
+        lista_articoli= api_get('/articoli_listino_tipologie/', id_listino = item_listino['id'] )
 
-        lista_tipologie = sorted(list({(item[5], item[6]) for item in lista_articoli}))
+        lista_tipologie = list({(item['tipologia'], item['nome']) for item in lista_articoli}) #TODO TOLTO SORTED, VERIFICA SE SONO ORDINATI
 
         canvas = tk.Canvas(listino)
         canvas.pack(side='left', fill='both', expand=True)
@@ -246,14 +246,14 @@ def draw_cassa(notebook, profile):
             frame_buttons = tk.Frame(frame_inside_canvas)
             frame_buttons.pack(side='top', fill='both', expand=True)
 
-            articoli_per_tipologia = sorted(list({tuple(item) for item in lista_articoli
-                                          if  item[5] == tipologia[0]}))
+            articoli_per_tipologia = [item for item in lista_articoli if item['tipologia'] == tipologia[0]]
+
 
             for i, articolo in enumerate(articoli_per_tipologia):
                 #if articolo[sfondo] == hex: #TODO
                 #    colore = 'black'
-                button = ttk.Button(frame_buttons, text=articolo[2],
-                                    command=functools.partial(insert_order, orders, articolo, item_listino[0]))
+                button = ttk.Button(frame_buttons, text=articolo['nome_breve'],
+                                    command=functools.partial(insert_order, orders, articolo, item_listino['id']))
                 button.grid(row=i // 6, column=i % 6, padx=5, pady=5)
             canvas.update_idletasks()
             canvas.configure(scrollregion=canvas.bbox("all"))
@@ -285,7 +285,7 @@ def draw_cassa(notebook, profile):
             ('servizio', str(servizio_value.get()))
         )
         salva(orders, valori_ordine)
-    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, orders, profile[0]))
+    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, orders, profile['id']))
     salva_tutto.pack(side='bottom', pady=(0, 60))
 
     # gestisco options_frame
