@@ -5,7 +5,17 @@ import json
 from config import api_get, api_post
 
 def on_tipologie_select(event, tipologie):
-    pass
+    region = tipologie.identify("region", event.x, event.y)
+    if region == "cell":
+        col_index = tipologie.identify_column(event.x)
+        col = tipologie.column(col_index)['id']
+        item = tipologie.identify_row(event.y)
+        if col == 'note':
+            pass
+            #on_select_note_edit(orders, item, col_index)
+        elif col == 'rimuovi':
+            pass
+            #on_select_delete(orders, item)
 
 def draw_articoli(notebook, profile):
     tab = ttk.Frame(notebook)
@@ -29,19 +39,23 @@ def draw_articoli(notebook, profile):
     tipologie_view = ttk.Frame(tipologie_frame)
     tipologie_view.pack(side='left', fill='both', expand=True)
 
-    tipologie = ttk.Treeview(tipologie_view, columns=('nome', 'sfondo', 'id', 'posizione', 'visibile'),
+    tipologie = ttk.Treeview(tipologie_view, columns=('rimuovi', 'nome', 'sfondo', 'id', 'posizione', 'visibile'),
                           show='headings')
+    tipologie.heading('rimuovi', text='Rimuovi tipologia')
     tipologie.heading('id', text='')
     tipologie.heading('nome', text='Nome tipologia')
     tipologie.heading('posizione', text='')
     tipologie.heading('sfondo', text='Colore sfondo')
     tipologie.heading('visibile', text='')
 
-    tipologie.column('id', width=0)
-    tipologie.column('nome', width=1000)  # width molto alta per occupare tutto lo
-    tipologie.column('posizione', width=0)
-    tipologie.column('sfondo', width=1000)
-    tipologie.column('visibile', width=0)
+    tipologie.column('rimuovi')
+    tipologie.column('id')
+    tipologie.column('nome')
+    tipologie.column('posizione')
+    tipologie.column('sfondo')
+    tipologie.column('visibile')
+
+    tipologie['displaycolumns'] = ('rimuovi', 'nome', 'sfondo')
 
     tipologie.pack(side='left', fill='both', expand=True)
 
@@ -49,7 +63,7 @@ def draw_articoli(notebook, profile):
 
     for item in api_get('/tipologie'):
         tipologie.insert('', 'end',
-                        values=(item['nome'], item['sfondo'], item['id'], item['posizione'], item['visibile']))
+                        values=('-', item['nome'], item['sfondo'], item['id'], item['posizione'], item['visibile']))
 
 
 

@@ -155,19 +155,18 @@ def draw_cassa(notebook, profile):
     orders = ttk.Treeview(order_frame,
                           columns=('rimuovi', 'qta', 'piatto', 'prezzo', 'note', 'id_listino', 'id_articolo'),
                           show='headings')
+
+    orders['displaycolumns'] = ('rimuovi', 'qta', 'piatto', 'prezzo', 'note')
+
     orders.heading('rimuovi', text='Rimuovi')
     orders.heading('qta', text='Qtà')
     orders.heading('piatto', text='Piatto')
     orders.heading('prezzo', text='Prezzo')
     orders.heading('note', text='Note')
-
     orders.heading('id_listino', text='')
     orders.heading('id_articolo', text='')
 
-    orders.pack(side='left', fill='both', expand=True)
-
-    orders.column('id_listino', width=0)
-    orders.column('id_articolo', width=0)
+    orders.pack(fill='both', expand=True)
     orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord))
 
     #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare. click sinistro su rimuovi per rimuovere
