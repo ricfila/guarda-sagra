@@ -209,7 +209,7 @@ def draw_cassa(notebook, profile):
     note_ordine_name_entry.pack(side='left', padx=(2, 20), expand=True, fill='x')
 
     # gestisco choices_frame
-    lista_listini = api_get('/listini_cassa/', id_profilo=2)  #TODO SOSTITUISCI NUMERO CON ID PROFILO
+    lista_listini = api_get('/listini_cassa/', id_profilo=profile['id'])
 
     listini_notebook = ttk.Notebook(choices_frame)
     listini_notebook.pack(fill='both', expand=True)
@@ -220,7 +220,10 @@ def draw_cassa(notebook, profile):
 
         lista_articoli= api_get('/articoli_listino_tipologie/', id_listino = item_listino['id'] )
 
-        lista_tipologie = list({(item['tipologia'], item['nome']) for item in lista_articoli}) #TODO TOLTO SORTED, VERIFICA SE SONO ORDINATI
+        lista_tipologie =[]
+        for item in lista_articoli:
+            if {'id': item['tipologia'], 'nome': item['nome']} not in lista_tipologie:
+                lista_tipologie.append({'id': item['tipologia'], 'nome': item['nome']})
 
         canvas = tk.Canvas(listino)
         canvas.pack(side='left', fill='both', expand=True)
@@ -237,7 +240,7 @@ def draw_cassa(notebook, profile):
             frame_tipologia = ttk.Frame(frame_inside_canvas)
             frame_tipologia.pack(side='top', fill='x')
 
-            label_tipologia = ttk.Label(frame_tipologia, text=tipologia[1])
+            label_tipologia = ttk.Label(frame_tipologia, text=tipologia['nome'])
             label_tipologia.pack(side='left', padx=10)
 
             riga_nera = tk.Frame(frame_tipologia, height=1, width=300, bg='black')
@@ -246,7 +249,7 @@ def draw_cassa(notebook, profile):
             frame_buttons = tk.Frame(frame_inside_canvas)
             frame_buttons.pack(side='top', fill='both', expand=True)
 
-            articoli_per_tipologia = [item for item in lista_articoli if item['tipologia'] == tipologia[0]]
+            articoli_per_tipologia = [item for item in lista_articoli if item['tipologia'] == tipologia['id']]
 
 
             for i, articolo in enumerate(articoli_per_tipologia):
