@@ -74,7 +74,7 @@ def on_select_delete(orders, item):
 
 
 def on_select_note_edit(orders, item, col_index):
-    # click destro per modificare note. "invio" o click fuori per modificare, "esc" per annullare
+    # click sinistro per modificare note. "invio" o click fuori per modificare, "esc" per annullare
     bbox = orders.bbox(item, 'note')
 
     if bbox:
@@ -132,10 +132,8 @@ def draw_cassa(notebook, profile):
 
     # suddivido in frames:
     info_frame = ttk.Frame(tab)
-    order_frame = ttk.Frame(tab)
     bill_frame = ttk.Frame(tab)
     options_frame = ttk.Frame(tab)
-    choices_frame = ttk.Frame(tab)
 
     # configuro la griglia
     tab.columnconfigure((0, 1), weight=1, uniform='a')
@@ -145,14 +143,12 @@ def draw_cassa(notebook, profile):
 
     # posiziono i frame
     info_frame.grid(row=0, column=0, sticky='nswe')
-    order_frame.grid(row=1, column=0, sticky='nswe')
     bill_frame.grid(row=2, column=0, sticky='nsew')
     options_frame.grid(row=0, column=1, sticky='nsew')
-    choices_frame.grid(row=1, column=1, rowspan=2, sticky='nsew')
 
-    # gestisco order_frame
+    # gestisco treeview per ordini
 
-    orders = ttk.Treeview(order_frame,
+    orders = ttk.Treeview(tab,
                           columns=('rimuovi', 'qta', 'piatto', 'prezzo', 'note', 'id_listino', 'id_articolo'),
                           show='headings')
 
@@ -162,13 +158,14 @@ def draw_cassa(notebook, profile):
     orders.heading('qta', text='Qtà')
     orders.heading('piatto', text='Piatto')
     orders.heading('prezzo', text='Prezzo')
-    orders.heading('note', text='Note')
+    orders.heading('note', text='Note')  #TODO la colonna note viene tagliata, al momento non riesco a sistemare
     orders.heading('id_listino', text='')
     orders.heading('id_articolo', text='')
 
-    orders.pack(fill='both', expand=True)
+    orders.grid(row=1, column=0, sticky='nswe')
     orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord))
 
+    orders.column('rimuovi', width=40)
     #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare. click sinistro su rimuovi per rimuovere
 
     # suddivido e gestisco info_frame
@@ -207,11 +204,11 @@ def draw_cassa(notebook, profile):
     note_ordine_label.pack(side='left', padx=(10, 2))
     note_ordine_name_entry.pack(side='left', padx=(2, 20), expand=True, fill='x')
 
-    # gestisco choices_frame
+    # gestisco notebook per la scelta articoli
     lista_listini = api_get('/listini_cassa/', id_profilo=profile['id'])
 
-    listini_notebook = ttk.Notebook(choices_frame)
-    listini_notebook.pack(fill='both', expand=True)
+    listini_notebook = ttk.Notebook(tab)
+    listini_notebook.grid(row=1, column=1, rowspan=2, sticky='nsew')
 
     for item_listino in lista_listini:
         listino = ttk.Frame(listini_notebook)
@@ -322,4 +319,3 @@ def draw_cassa(notebook, profile):
     veloce_checkbox.grid(row=0, column=1, sticky='nsw')
     omaggio_checkbox.grid(row=1, column=0, sticky='nsw')
     servizio_checkbox.grid(row=1, column=1, sticky='nsw')
-
