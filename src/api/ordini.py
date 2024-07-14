@@ -1,5 +1,6 @@
-from flask import Blueprint, request, jsonify
-from .connection import get_connection, jason, single_jason
+from flask import Blueprint, request, jsonify, Response
+from .connection import get_connection, jason, single_jason, col_names
+import json
 
 bp = Blueprint('ordini', __name__)
 
@@ -8,22 +9,34 @@ bp = Blueprint('ordini', __name__)
 def get_ordini():
     cur = get_connection().cursor()
     cur.execute("SELECT * FROM ordini;")
-    return jason(cur)
+    ordini = []
+    for i in range(cur.rowcount):
+        ordini.append(format_ordine(cur))
+    return Response(json.dumps(ordini, default=str), mimetype='application/json')
 
 
 @bp.get('/ordini/<int:id_ordine>')
 def get_ordine(id_ordine):
     cur = get_connection().cursor()
     cur.execute("SELECT * FROM ordini WHERE id = %s;", (id_ordine, ))
-    return single_jason(cur)
+
+    if cur.rowcount == 0:
+        return "Ordine non trovato", 404
+    else:
+        return Response(json.dumps(format_ordine(cur), default=str), mimetype='application/json')
 
 
-# TODO: Verificare che il commit avvenga anche su sqlite, altrimenti bisogna usare get_connection.commit()
+def format_ordine(cur):
+    cols = col_names(cur)
+    ordine = dict(zip(cols, cur.fetchone()))
+    ordine['ora'] = ordine['ora'].replace(microsecond=0)
+    return ordine
+
+
 @bp.post('/ordini')
 def crea_ordine():
     cur = get_connection().cursor()
     content = request.json
-    print(content)
     cur.execute("BEGIN;")
 
     try:
@@ -55,8 +68,7 @@ def crea_ordine():
 
         cur.execute("COMMIT;")
 
-        cur.execute("SELECT * FROM ordini WHERE id = %s;", (id_ordine,))
-        return single_jason(cur)
+        return get_ordine(id_ordine)
     except Exception as e:
         print(e)
         cur.execute("ROLLBACK;")
