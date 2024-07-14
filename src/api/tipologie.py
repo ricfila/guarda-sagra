@@ -7,13 +7,13 @@ bp = Blueprint('tipologie', __name__)
 @bp.get('/tipologie')
 def get_tipologie():
     cur = get_connection().cursor()
-    cur.execute("SELECT * FROM tipologie")
+    cur.execute("SELECT * FROM tipologie ORDER BY posizione;")
     return jason(cur)
 
 
 @bp.get('/tipologie/<int:tipologie_id>')
 def get_tipologia(tipologie_id):
     cur = get_connection().cursor()
-    cur.execute("SELECT * FROM tipologie where id = {};".format(tipologie_id))
+    cur.execute("SELECT * FROM tipologie where id = %s;", (tipologie_id,))
     return single_jason(cur)
 

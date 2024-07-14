@@ -9,12 +9,15 @@ bp = Blueprint('articoli', __name__)
 @bp.get('/articoli_listino/<int:listino>')
 def get_articoli_listino(listino):
     cur = get_connection().cursor()
-    cur.execute("""SELECT articoli.id, articoli.nome, articoli.nome_breve, articoli.prezzo, articoli_listini.sfondo, articoli_listini.tipologia, 
-                FROM articoli_listini
-                JOIN articoli ON articoli_listini.articolo = articoli.id
-                JOIN tipologie ON articoli_listini.tipologia = tipologie.id
-                WHERE articoli_listini.listino = {} AND articoli_listini.visibile AND tipologie.visibile
-                ORDER BY articoli_listini.posizione;""".format(listino))
+    query = """
+        SELECT articoli.id, articoli.nome, articoli.nome_breve, articoli.prezzo, articoli_listini.sfondo, articoli_listini.tipologia, 
+        FROM articoli_listini
+        JOIN articoli ON articoli_listini.articolo = articoli.id
+        JOIN tipologie ON articoli_listini.tipologia = tipologie.id
+        WHERE articoli_listini.listino = %s AND articoli_listini.visibile AND tipologie.visibile
+        ORDER BY articoli_listini.posizione;
+    """
+    cur.execute(query, (listino,))
     return jason(cur)
 
 
@@ -24,10 +27,13 @@ def get_articoli_listino(listino):
 @bp.get('/articoli_listino_tipologie/<int:listino>')
 def get_articoli_listino_tipologie(listino):
     cur = get_connection().cursor()
-    cur.execute("""SELECT articoli.id, articoli.nome, articoli.nome_breve, articoli.prezzo, articoli_listini.sfondo, articoli_listini.tipologia, tipologie.nome, tipologie.sfondo
-                FROM articoli_listini
-                JOIN articoli ON articoli_listini.articolo = articoli.id
-                JOIN tipologie ON articoli_listini.tipologia = tipologie.id
-                WHERE articoli_listini.listino = {} AND articoli_listini.visibile AND tipologie.visibile
-                ORDER BY tipologie.posizione, articoli_listini.posizione;""".format(listino))
+    query = """
+        SELECT articoli.id, articoli.nome, articoli.nome_breve, articoli.prezzo, articoli_listini.sfondo, articoli_listini.tipologia, tipologie.nome as nome_tipologia, tipologie.sfondo as sfondo_tipologia
+        FROM articoli_listini
+        JOIN articoli ON articoli_listini.articolo = articoli.id
+        JOIN tipologie ON articoli_listini.tipologia = tipologie.id
+        WHERE articoli_listini.listino = %s AND articoli_listini.visibile AND tipologie.visibile
+        ORDER BY tipologie.posizione, articoli_listini.posizione;
+    """
+    cur.execute(query, (listino,))
     return jason(cur)
