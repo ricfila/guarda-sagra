@@ -38,8 +38,8 @@ def refresh_colori(treeview):
             treeview.item(riga, tags=nome_tag)
 
 
-def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna):
-    # click sinistro per modificare note. "invio" o click fuori per modificare, "esc" per annullare
+def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna): #TODO unisci a on_select_modifica di cassa.py e sposta in modulo per funzioni generiche
+    # click sinistro per modificare nome. "invio" o click fuori per modificare, "esc" per annullare
     bbox = treeview.bbox(id_riga, nome_colonna)
 
     if bbox:
@@ -50,6 +50,7 @@ def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna):
 
         def save_edit(event):
             new_value = entry_per_modifica.get()
+            #TODO put_api per modifica nome
             treeview.set(id_riga, nome_colonna, new_value)
             entry_per_modifica.destroy()
 
