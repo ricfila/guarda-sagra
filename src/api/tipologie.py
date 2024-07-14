@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, jsonify
 from .connection import get_connection, jason, single_jason
 
 bp = Blueprint('tipologie', __name__)
@@ -16,4 +16,3 @@ def get_tipologia(tipologie_id):
     cur = get_connection().cursor()
     cur.execute("SELECT * FROM tipologie where id = %s;", (tipologie_id,))
     return single_jason(cur)
-
