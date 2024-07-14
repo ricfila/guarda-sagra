@@ -18,13 +18,15 @@ def on_tipologie_select(event, treeview): #TODO unisci a on_select di cassa.py e
         elif nome_colonna == 'rimuovi':
             on_select_rimuovi(treeview, id_riga)
 
-def on_select_colore(treeview, id_riga, nome_colonna):
-    def scelta_colore():
-        colore = colorchooser.askcolor(title = "Scelta dello sfondo per la tipologia "+ treeview.item(id_riga, 'values')[1])[1]
-        return colore  #  '#hex' (es: '#000000')
+def scelta_colore(intestazione, colore):
+    colore_temp =colorchooser.askcolor(title = intestazione)[1]
+    colore.set(colore_temp)
 
-    colore = scelta_colore()
-    treeview.set(id_riga, nome_colonna, colore)
+def on_select_colore(treeview, id_riga, nome_colonna):
+    colore = tk.StringVar()
+    scelta_colore(("Scelta dello sfondo per la tipologia "+ treeview.item(id_riga, 'values')[1])[1], colore)
+    treeview.set(id_riga, nome_colonna, colore.get())
+    # TODO chiamata a API per modifica colore
     refresh_colori(treeview)
 
 def refresh_colori(treeview):
@@ -70,8 +72,22 @@ def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna):
 def on_select_rimuovi(treeview, id_riga):
     reply = messagebox.askquestion("Elimina tipologia", f"Vuoi eliminare la tipologia " + treeview.item(id_riga, 'values')[1])
     if reply == 'yes':
-        #TODO DELETE REQUEST API
+        #api_delete(treeview.item(id_riga, 'values')[3])  #TODO DELETE REQUEST API (api_delete è un nome temporaneo, il valore in posizione 3 è 'id')
         treeview.delete(id_riga)
+def add_tipologia(tipologie_treeview, nome, posizione, colore):
+    #TODO post_api(nome, posizione, colore) Devo passare altro?
+    refresh_tipologie_treeview(tipologie_treeview)
+
+
+def refresh_tipologie_treeview(tipologie_treeview):
+    for riga in tipologie_treeview.get_children():
+        tipologie_treeview.delete(riga)
+
+    for item in api_get('/tipologie'):
+        tipologie_treeview.insert('', 'end',
+                        values=('-', item['nome'], item['sfondo'], item['id'], item['posizione'], item['visibile']))
+    refresh_colori(tipologie_treeview)
+
 
 def draw_articoli(notebook, profile):
     tab = ttk.Frame(notebook)
@@ -86,46 +102,63 @@ def draw_articoli(notebook, profile):
         notebook.add(frame, text=text)
         return frame
 
-    articoli_frame = add_notebook_frame(articoli_notebook, 'Articoli')
-    tipologie_frame = add_notebook_frame(articoli_notebook, 'Tipologie')
-    listini_frame = add_notebook_frame(articoli_notebook, 'Listini')
+    articoli_page = add_notebook_frame(articoli_notebook, 'Articoli')
+    tipologie_page = add_notebook_frame(articoli_notebook, 'Tipologie')
+    listini_page = add_notebook_frame(articoli_notebook, 'Listini')
 
-    # articoli_frame
+    # articoli_page
     # tipologie_frame
-    tipologie_view = ttk.Frame(tipologie_frame)
-    tipologie_view.pack(side='left', fill='both', expand=True)
-    def add_tipologia(tipologie):
-        pass
-    # TODO aggiungi label e entry per nome, posizione e sfondo. bottone per settare colore, poi click su aggiungi
-    #  per aggiungere. deve calcolare l'id massimo e fare +1
-    aggiungi_tipologia = ttk.Button(tipologie_view, text="Aggiungi tipologia", command=add_tipologia(tipologie))
+    tipologie_view = ttk.Frame(tipologie_page)
+    tipologie_view.pack(fill='both', expand=True)
+    # frame di inserimento tipologie
+    nuova_tipologia_frame = ttk.Frame(tipologie_view)
+    nuova_tipologia_frame.pack()
+
+    nuova_tipologia_nome_label = ttk.Label(nuova_tipologia_frame, text="Nome nuova tipologia:")
+    nuova_tipologia_nome_label.pack(side='left', padx=10, pady=10)
+
+    nuova_tipologia_nome = tk.StringVar()
+    nuova_tipologia_nome_entry = ttk.Entry(nuova_tipologia_frame, textvariable=nuova_tipologia_nome)
+    nuova_tipologia_nome_entry.pack(side='left', padx=10, pady=10)
+
+    nuova_tipologia_posizione_label = ttk.Label(nuova_tipologia_frame, text="Posizione nuova tipologia:")
+    nuova_tipologia_posizione_label.pack(side='left', padx=10, pady=10)
+
+    nuova_tipologia_posizione = tk.StringVar()
+    nuova_tipologia_posizione_entry = ttk.Entry(nuova_tipologia_frame, textvariable=nuova_tipologia_posizione, width=10)
+    nuova_tipologia_posizione_entry.pack(side='left', padx=10, pady=10)
+
+    nuova_tipologia_colore = tk.StringVar()
+    nuova_tipologia_colore_bottone = ttk.Button(nuova_tipologia_frame, text="Seleziona colore",
+                                                command = lambda : scelta_colore("Seleziona il colore di sfondo per la nuova tipologia", nuova_tipologia_colore))
+    nuova_tipologia_colore_bottone.pack(side='left', padx=10, pady=10)
 
 
-    tipologie = ttk.Treeview(tipologie_view, columns=('rimuovi', 'nome', 'sfondo', 'id', 'posizione', 'visibile'),
+    tipologie_treeview = ttk.Treeview(tipologie_view, columns=('rimuovi', 'nome', 'sfondo', 'id', 'posizione', 'visibile'),
                           show='headings')
-    tipologie.heading('rimuovi', text='Rimuovi tipologia')
-    tipologie.heading('id', text='')
-    tipologie.heading('nome', text='Nome tipologia')
-    tipologie.heading('posizione', text='')
-    tipologie.heading('sfondo', text='Colore sfondo')
-    tipologie.heading('visibile', text='')
+    tipologie_treeview.heading('rimuovi', text='Rimuovi tipologia')
+    tipologie_treeview.heading('id', text='')
+    tipologie_treeview.heading('nome', text='Nome tipologia')
+    tipologie_treeview.heading('posizione', text='')
+    tipologie_treeview.heading('sfondo', text='Colore sfondo')
+    tipologie_treeview.heading('visibile', text='')
 
-    tipologie.column('rimuovi')
-    tipologie.column('id')
-    tipologie.column('nome')
-    tipologie.column('posizione')
-    tipologie.column('sfondo')
-    tipologie.column('visibile')
+    tipologie_treeview.column('rimuovi')
+    tipologie_treeview.column('id')
+    tipologie_treeview.column('nome')
+    tipologie_treeview.column('posizione')
+    tipologie_treeview.column('sfondo')
+    tipologie_treeview.column('visibile')
 
-    tipologie['displaycolumns'] = ('rimuovi', 'nome', 'sfondo')
+    tipologie_treeview['displaycolumns'] = ('rimuovi', 'nome', 'sfondo')
 
-    tipologie.pack(side='left', fill='both', expand=True)
+    tipologie_treeview.pack(fill='both', expand=True)
 
-    tipologie.bind("<Button-1>", lambda event, tip=tipologie: on_tipologie_select(event, tip))
+    tipologie_treeview.bind("<Button-1>", lambda event, tip=tipologie_treeview: on_tipologie_select(event, tip))
 
-    for item in api_get('/tipologie'):
-        tipologie.insert('', 'end',
-                        values=('-', item['nome'], item['sfondo'], item['id'], item['posizione'], item['visibile']))
-    refresh_colori(tipologie)
+    refresh_tipologie_treeview(tipologie_treeview)
 
-    # listini_frame
+    aggiungi_tipologia = ttk.Button(nuova_tipologia_frame, text="Aggiungi tipologia", command= lambda: add_tipologia(tipologie_treeview, nuova_tipologia_nome, nuova_tipologia_posizione, nuova_tipologia_colore))
+    aggiungi_tipologia.pack(side='left', padx=10, pady=10)
+
+    # listini_page
