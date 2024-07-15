@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from src.api.connection import get_connection, jason, single_jason
+from src.api.connection import get_connection, jason_cur, single_jason_cur, col_names, single_jason
 
 bp = Blueprint('profili', __name__)
 
@@ -9,18 +9,18 @@ def get_profili():
     cur = get_connection().cursor()
     try:
         cur.execute("SELECT * FROM profili ORDER BY nome;")
-        return jason(cur)
+        return jason_cur(cur)
     except Exception as err:
         print(err)
         return "Errore", 500
 
 
-@bp.get('/profili/<int:profili_id>')
-def get_profilo(profili_id):
+@bp.get('/profili/<int:id_profilo>')
+def get_profilo(id_profilo):
     cur = get_connection().cursor()
-    cur.execute("SELECT * FROM profili WHERE id = %s;", (profili_id,))
+    cur.execute("SELECT * FROM profili WHERE id = %s;", (id_profilo,))
     if cur.rowcount == 1:
-        return single_jason(cur)
+        return single_jason_cur(cur)
     else:
         return "Profilo non trovato", 404
 
@@ -36,28 +36,57 @@ def crea_profilo():
 
         id_profilo = cur.fetchone()[0]
         cur.execute("SELECT * FROM profili WHERE id = %s;", (id_profilo,))
-        return single_jason(cur)
+        return single_jason_cur(cur), 201
     except Exception as err:
         print(err)
         return "Errore nell'inserimento del profilo", 500
 
 
-@bp.put('/profili/<int:profili_id>')
-def update_profilo(profili_id):
+@bp.put('/profili/<int:id_profilo>')
+def update_profilo(id_profilo):
     content = request.json
     cur = get_connection().cursor()
-    cur.execute("SELECT * FROM profili WHERE id = {};".format(profili_id))
+    cur.execute("SELECT * FROM profili WHERE id = %s;", (id_profilo,))
     if cur.rowcount == 0:
         return "Profilo non trovato", 404
     try:
         cur.execute("UPDATE profili SET nome = %s, privilegi = %s, area = %s, password = %s, arrotonda = %s WHERE id = %s;",
                     (content['nome'], content['privilegi'], content['area'], content['password'], content['arrotonda'],
-                     profili_id))
+                     id_profilo))
         get_connection().commit()
 
-        cur.execute("SELECT * FROM profili WHERE id = %s;", (profili_id,))
-        return single_jason(cur)
+        cur.execute("SELECT * FROM profili WHERE id = %s;", (id_profilo,))
+        return single_jason_cur(cur)
     except Exception as err:
         print(err)
         return "Errore durante l'aggiornamento del profilo", 500
 
+
+@bp.delete("/profili/<int:id_profilo>")
+def delete_profilo(id_profilo):
+    cur = get_connection().cursor()
+    cur.execute("SELECT * FROM profili WHERE id = %s;", (id_profilo,))
+    if cur.rowcount == 0:
+        return "Profilo non trovato"
+
+    try:
+        profilo = cur.fetchone()
+        cols = col_names(cur)
+        dict_profilo = dict(zip(cols, profilo))
+
+        # Controllo se è l'unico utente amministratore
+        if dict_profilo['privilegi'] == 1:
+            cur.execute("SELECT * FROM profili WHERE privilegi = 1 AND id <> %s;", (id_profilo,))
+            if cur.rowcount == 0:
+                return "Impossibile cancellare il profilo amministratore, dev'essere sempre presente almeno un profilo con privilegi amministrativi", 403
+
+        # Controllo se ci sono ordini ad esso collegati
+        cur.execute("SELECT * FROM ordini WHERE cassa = %s;", (id_profilo,))
+        if cur.rowcount > 0:
+            return "Impossibile cancellare il profilo, ci sono {} ordini collegati ad esso".format(cur.rowcount), 403
+
+        cur.execute("DELETE FROM profili WHERE id = %s", (id_profilo,))
+        return single_jason(cols, profilo)
+    except Exception as e:
+        print(e)
+        return "Errore durante la cancellazione del profilo", 500

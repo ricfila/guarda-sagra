@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
-from .connection import get_connection, jason, single_jason, col_names
+from .connection import get_connection, jason_cur, single_jason_cur, col_names, single_jason
 import json
 
 bp = Blueprint('ordini', __name__)
@@ -34,7 +34,7 @@ def format_ordine(cur):
 
 
 @bp.post('/ordini')
-def crea_ordine():
+def create_ordine():
     cur = get_connection().cursor()
     content = request.json
     cur.execute("BEGIN;")
@@ -68,8 +68,27 @@ def crea_ordine():
 
         cur.execute("COMMIT;")
 
-        return get_ordine(id_ordine)
+        return get_ordine(id_ordine), 201
     except Exception as e:
         print(e)
         cur.execute("ROLLBACK;")
         return "Errore durante la creazione dell'ordine", 500
+
+# TODO implementare modifiche all'ordine, selettive e complessive
+
+@bp.delete('/ordini/<id_ordine>')
+def delete_ordine(id_ordine):
+    cur = get_connection().cursor()
+    cur.execute("SELECT * FROM ordini WHERE id = %s;", (id_ordine,))
+    if cur.rownumber == 0:
+        return "Ordine non trovato"
+
+    try:
+        ordine = cur.fetchone()
+        cols = col_names(cur)
+        cur.execute("DELETE FROM ordini WHERE id = %s;", (id_ordine,))
+        return single_jason(cols, ordine)
+    except Exception as e:
+        print(e)
+        return "Errore durante la cancellazione dell'ordine"
+

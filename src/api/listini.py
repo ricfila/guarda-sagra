@@ -1,8 +1,11 @@
-from flask import Blueprint, jsonify
-from .connection import get_connection, jason, single_jason
+from flask import Blueprint, jsonify, request
+from .connection import get_connection, jason_cur, single_jason_cur, col_names, single_jason
 
 bp = Blueprint('listini', __name__)
 
+
+def get_listino(id_listino):
+    pass
 
 @bp.get('/listini_cassa/<int:cassa>')
 def get_listini_cassa(cassa):
@@ -15,4 +18,53 @@ def get_listini_cassa(cassa):
         (casse_listini.data_fine >= CURRENT_DATE OR casse_listini.data_fine IS NULL);
     """
     cur.execute(query, (cassa,))
-    return jason(cur)
+    return jason_cur(cur)
+
+
+@bp.post('/listini')
+def create_listino():
+    content = request.get_json()
+    cur = get_connection().cursor()
+    query = "INSERT INTO listini (nome) VALUES (%s) RETURNING id;"
+    try:
+        cur.execute(query, (content['nome'],))
+        id_listino = cur.fetchone()[0]
+        return get_listino(id_listino), 201
+    except Exception as e:
+        print(e)
+        return "Errore durante la creazione del listino", 500
+
+
+@bp.put('/listini/<int:id_listino>')
+def update_listino(id_listino):
+    cur = get_connection().cursor()
+    cur.execute("SELECT * FROM listini WHERE id = %s", (id_listino,))
+    if cur.rowcount == 0:
+        return "Listino non trovato", 404
+
+    content = request.get_json()
+    query = "UPDATE listini SET nome = %s WHERE id = %s;"
+    try:
+        cur.execute(query, (content['nome'], id_listino))
+        return get_listino(id_listino)
+    except Exception as e:
+        print(e)
+        return "Errore durante l'aggiornamento del listino", 500
+
+
+
+@bp.delete('/listini/<int:id_listino>')
+def delete_listino(id_listino):
+    cur = get_connection().cursor()
+    cur.execute("SELECT * FROM listini WHERE id = %s", (id_listino,))
+    if cur.rowcount == 0:
+        return "Listino non trovato", 404
+
+    try:
+        listino = cur.fetchone()
+        cols = col_names(cur)
+        cur.execute("DELETE FROM listini WHERE id = %s;", (id_listino,))
+        return single_jason(cols, listino)
+    except Exception as e:
+        print(e)
+        return "Errore durante la cancellazione del listino", 500

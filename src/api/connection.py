@@ -72,15 +72,28 @@ def sqlite_enabled():
     return cf == "true" or cf == "True"
 
 
-def jason(cur):
+def jason_cur(cur):
     cols = col_names(cur)
-    return jsonify([dict(zip(cols, row)) for row in cur.fetchall()])
+    return jason(cols, cur.fetchall())
 
-
-def single_jason(cur):
+def single_jason_cur(cur):
     cols = col_names(cur)
-    return jsonify(dict(zip(cols, cur.fetchone())))
+    return single_jason(cols, cur.fetchone())
 
+def jason(cols, rows):
+    return jsonify([dict(zip(cols, row)) for row in rows])
+
+def single_jason(cols, row):
+    return jsonify(dict_res(cols, row))
 
 def col_names(cur):
     return [desc[0] for desc in cur.description]
+
+def dict_res(col, row):
+    return dict(zip(col, row))
+
+def exists_element(table, id_element):
+    cur = get_connection().cursor()
+    cur.execute("SELECT * FROM {} WHERE id = %s".format(table), (id_element,))
+    exists = cur.rowcount == 1
+    return exists, (dict_res(col_names(cur), cur.fetchone()) if exists else None)
