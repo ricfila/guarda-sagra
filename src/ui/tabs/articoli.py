@@ -1,7 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog, colorchooser
-import requests
-import json
+from tkinter import ttk, messagebox, colorchooser
 from config import api_get, api_post
 
 
@@ -260,11 +258,6 @@ def draw_articoli(notebook, profile):
     articoli_treeview.heading('copia_rosticceria', text='Copia rosticceria')
 
     articoli_treeview.column('rimuovi', width=40)
-    articoli_treeview.column('id')
-    articoli_treeview.column('nome')
-    articoli_treeview.column('nome_breve')
-    articoli_treeview.column('tipologia')
-    articoli_treeview.column('prezzo')
     articoli_treeview.column('copia_cliente', width=40)
     articoli_treeview.column('copia_cucina', width=40)
     articoli_treeview.column('copia_bar', width=40)
@@ -320,11 +313,6 @@ def draw_articoli(notebook, profile):
     tipologie_treeview.heading('visibile', text='')
 
     tipologie_treeview.column('rimuovi', width=40)
-    tipologie_treeview.column('id')
-    tipologie_treeview.column('nome')
-    tipologie_treeview.column('posizione')
-    tipologie_treeview.column('sfondo')
-    tipologie_treeview.column('visibile')
 
     tipologie_treeview['displaycolumns'] = ('rimuovi', 'nome', 'sfondo')
 
@@ -390,11 +378,7 @@ def draw_articoli(notebook, profile):
     articoli_per_listino_treeview.heading('prezzo', text='Prezzo')
 
     articoli_per_listino_treeview.column('aggiungi_rimuovi', width=40)
-    articoli_per_listino_treeview.column('id')
-    articoli_per_listino_treeview.column('nome')
-    articoli_per_listino_treeview.column('nome_breve')
-    articoli_per_listino_treeview.column('tipologia')
-    articoli_per_listino_treeview.column('prezzo')
+
 
     #articoli_per_listino_treeview['displaycolumns'] = ('rimuovi', 'nome', 'sfondo')
 

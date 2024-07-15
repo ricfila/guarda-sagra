@@ -19,16 +19,16 @@ class Main_window(tk.Tk):
     def draw_tabs(self, profile):
         notebook = ttk.Notebook(self)
 
-        if profile['privilegi'] % 2 == 0 or profile['privilegi'] == 1:
+        if profile['privilegi'] == 1 or profile['privilegi'] % 2 == 0:
             cassa.draw_cassa(notebook, profile)
-        if profile['privilegi'] % 3 == 0 or profile['privilegi'] == 1:
+        if profile['privilegi'] == 1 or profile['privilegi'] % 3 == 0:
             pass  # Temporaneamente libero
-        if profile['privilegi'] % 5 == 0 or profile['privilegi'] == 1:
-            articoli.draw_articoli(notebook, profile)  #modifica listini, articoli e tipologie
-        if profile['privilegi'] % 7 == 0 or profile['privilegi'] == 1:
-            pass  # modifica profili, aree e listini collegati
-        if profile['privilegi'] % 11 == 0 or profile['privilegi'] == 1:
-            pass  # statistiche e report
+        if profile['privilegi'] == 1 or profile['privilegi'] % 5 == 0:
+            articoli.draw_articoli(notebook, profile)  # modifica listini, articoli e tipologie
+        if profile['privilegi'] == 1 or profile['privilegi'] % 7 == 0:
+            profili.draw_profiles(notebook)  # modifica profili, aree e listini collegati
+        if profile['privilegi'] == 1 or profile['privilegi'] % 11 == 0:
+            report.draw_report(notebook)
 
         notebook.pack(expand=True, fill="both")
 
