@@ -4,6 +4,18 @@ from .connection import get_connection, jason, single_jason
 bp = Blueprint('articoli', __name__)
 
 
+@bp.get('/articoli')
+def get_articoli():
+    cur = get_connection().cursor()
+    query = """
+        SELECT *
+        FROM articoli
+        ORDER BY nome_breve;
+    """
+    cur.execute(query, )
+    return jason(cur)
+
+
 # Restituisce la lista di articoli associati al listino, ordinati secondo il campo "posizione" in articoli_listini
 # La tipologia viene fornita tramite id
 @bp.get('/articoli_listino/<int:listino>')

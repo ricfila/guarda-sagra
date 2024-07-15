@@ -4,6 +4,25 @@ import requests
 import json
 from config import api_get, api_post
 
+
+def toggle_checkbox(event, var):  # TODO sposta in file funzioni generiche unisci con cassa
+    var.set(not var.get())
+
+
+def crea_checkbox(parent_frame, label_text, var):  # TODO sposta in file funzioni generiche unisci con cassa
+    frame = tk.Frame(parent_frame, borderwidth=1, relief=tk.RIDGE)
+
+    checkbox = tk.Checkbutton(frame, variable=var, onvalue=True, offvalue=False)
+    checkbox.pack(side='left')
+
+    label = tk.Label(frame, text=label_text)
+    label.pack(side='left', padx=5)
+
+    frame.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
+    label.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
+
+    return frame
+
 def on_tipologie_select(event, treeview): #TODO unisci a on_select di cassa.py e sposta in modulo per funzioni generiche
     region = treeview.identify("region", event.x, event.y)
     if region == "cell":
@@ -49,6 +68,16 @@ def on_articoli_select(event, treeview): #TODO unisci a on_select di cassa.py e 
         elif nome_colonna == 'rimuovi':
             on_select_rimuovi(treeview, id_riga)
 
+def on_articoli_per_listino_select(event, treeview):
+    region = treeview.identify("region", event.x, event.y)
+    if region == "cell":
+        indice_colonna = treeview.identify_column(event.x)
+        nome_colonna = treeview.column(indice_colonna)['id']
+        id_riga = treeview.identify_row(event.y)
+        if nome_colonna == 'aggiungi_rimuovi':
+            on_select_inverti(treeview, id_riga, indice_colonna, nome_colonna)
+
+
 def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna): #TODO unisci a on_select_modifica di cassa.py e sposta in modulo per funzioni generiche
     # click sinistro per modificare nome. "invio" o click fuori per modificare, "esc" per annullare
     bbox = treeview.bbox(id_riga, nome_colonna)
@@ -81,14 +110,26 @@ def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna): #TODO u
             entry_per_modifica.focus_set()
         entry_per_modifica.after_idle(set_focus)
 
+def on_select_inverti(treeview, id_riga, indice_colonna, nome_colonna):
+    pass
+    #if valore 0 == +
+    #    aggiungi associazione a db, colora di verde, scrivi -
+    #if valore 0 == -
+    #    rimuovi da db, setta colore base, scrivi +
+
 def on_select_rimuovi(treeview, id_riga):
     reply = messagebox.askquestion("Elimina tipologia", f"Vuoi eliminare la tipologia " + treeview.item(id_riga, 'values')[1])
     if reply == 'yes':
         #api_delete(treeview.item(id_riga, 'values')[3])  #TODO DELETE REQUEST API (api_delete è un nome temporaneo, il valore in posizione 3 è 'id')
         treeview.delete(id_riga)
 def add_articolo(articoli_treeview, nome, nome_breve, id_tipologia, prezzo, copia_cliente, copia_cucina, copia_bar, copia_pizzeria, copia_rosticceria):
-    #TODO post_api(nome, posizione, colore) Devo passare altro?
+    #TODO post_api(nome, nome_breve, ...) Devo passare altro?
     refresh_articoli_treeview(articoli_treeview)
+
+
+def add_tipologia(tipologie_treeview, nome, posizione, colore):
+    #TODO post_api(nome, posizione, colore) Devo passare altro?
+    refresh_tipologie_treeview(tipologie_treeview)
 
 
 def refresh_tipologie_treeview(tipologie_treeview):
@@ -104,7 +145,7 @@ def refresh_articoli_treeview(articoli_treeview):
     for riga in articoli_treeview.get_children():
         articoli_treeview.delete(riga)
 
-    for item in api_get('/articoli'):
+    for item in api_get('/articoli'):  #TODO manca API per get di articoli senza id listino
         articoli_treeview.insert('', 'end',
                         values=('-', item['id'],  item['nome'], item['nome_breve'], item['tipologia'], item['prezzo'], item['copia_cliente'], item['copia_cucina'], item['copia_bar'], item['copia_pizzeria'], item['copia_rosticceria']))
 
@@ -114,6 +155,20 @@ def get_tipologie(combobox):
         tipologia = str(item['id']) + ' ' + item['nome']
         tipologie.append(tipologia)
     combobox['values'] = tuple(tipologie)
+
+def get_listini(combobox):
+    listini = []
+    for item in api_get('/listini'):
+        listino = str(item['id']) + ' ' + item['nome']
+        listini.append(listino)
+    combobox['values'] = tuple(listini)
+
+def get_profili(combobox):
+    profili = []
+    for item in api_get('/profili'):
+        profilo = str(item['id']) + ' ' + item['nome']
+        profili.append(profilo)
+    combobox['values'] = tuple(profili)
 
 def draw_articoli(notebook, profile):
     tab = ttk.Frame(notebook)
@@ -159,8 +214,9 @@ def draw_articoli(notebook, profile):
     nuovo_articolo_tipologia_combobox['state'] = 'readonly'
     nuovo_articolo_tipologia_combobox.pack(side='left', padx=10, pady=10)
 
-    nuovo_articolo_tipologia_combobox['values'] = ()
-    nuovo_articolo_tipologia_combobox.bind('<ButtonRelease-1>', lambda event: get_tipologie(nuovo_articolo_tipologia_combobox))
+    aggiorna_combobox_listino = ttk.Button(nuovo_articolo_frame, text="Aggiorna listino",
+                                           command=lambda: get_tipologie(nuovo_articolo_tipologia_combobox))
+    aggiorna_combobox_listino.pack(side='left', padx=10, pady=10)
 
 
     nuovo_articolo_prezzo_label = ttk.Label(nuovo_articolo_frame, text="Prezzo:")
@@ -177,29 +233,11 @@ def draw_articoli(notebook, profile):
     copia_pizzeria = tk.BooleanVar()
     copia_rosticceria = tk.BooleanVar()
 
-
-    def toggle_checkbox(event, var): #TODO sposta in file funzioni generiche unisci con cassa
-        var.set(not var.get())
-
-    def crea_checkbox(label_text, var): #TODO sposta in file funzioni generiche unisci con cassa
-        frame = tk.Frame(nuovo_articolo_frame, borderwidth=1, relief=tk.RIDGE)
-
-        checkbox = tk.Checkbutton(frame, variable=var, onvalue=True, offvalue=False)
-        checkbox.pack(side='left')
-
-        label = tk.Label(frame, text=label_text)
-        label.pack(side='left', padx=5)
-
-        frame.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
-        label.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
-
-        return frame
-
-    copia_cliente_checkbox = crea_checkbox("Copia cliente", copia_cliente)
-    copia_cucina_checkbox = crea_checkbox("Copia cucina", copia_cucina)
-    copia_bar_checkbox = crea_checkbox("Copia bar", copia_bar)
-    copia_pizzeria_checkbox = crea_checkbox("Copia pizzeria", copia_pizzeria)
-    copia_rosticceria = crea_checkbox("Copia rosticceria", copia_rosticceria)
+    copia_cliente_checkbox = crea_checkbox(nuovo_articolo_frame, "Copia cliente", copia_cliente)
+    copia_cucina_checkbox = crea_checkbox(nuovo_articolo_frame, "Copia cucina", copia_cucina)
+    copia_bar_checkbox = crea_checkbox(nuovo_articolo_frame, "Copia bar", copia_bar)
+    copia_pizzeria_checkbox = crea_checkbox(nuovo_articolo_frame, "Copia pizzeria", copia_pizzeria)
+    copia_rosticceria = crea_checkbox(nuovo_articolo_frame, "Copia rosticceria", copia_rosticceria)
     copia_cliente_checkbox.pack(side='left', padx=5, pady=5)
     copia_cucina_checkbox.pack(side='left', padx=5, pady=5)
     copia_bar_checkbox.pack(side='left', padx=5, pady=5)
@@ -296,7 +334,7 @@ def draw_articoli(notebook, profile):
 
     refresh_tipologie_treeview(tipologie_treeview)
 
-    aggiungi_tipologia = ttk.Button(nuova_tipologia_frame, text="Aggiungi tipologia", command= lambda: add_articolo(tipologie_treeview, nuova_tipologia_nome, nuova_tipologia_posizione, nuova_tipologia_colore))
+    aggiungi_tipologia = ttk.Button(nuova_tipologia_frame, text="Aggiungi tipologia", command= lambda: add_tipologia(tipologie_treeview, nuova_tipologia_nome, nuova_tipologia_posizione, nuova_tipologia_colore))
     aggiungi_tipologia.pack(side='left', padx=10, pady=10)
 
     # listini_page
@@ -314,5 +352,54 @@ def draw_articoli(notebook, profile):
     nuovo_listino_nome_entry = ttk.Entry(nuovo_listino_frame, textvariable=nuovo_listino_nome)
     nuovo_listino_nome_entry.pack(side='left', padx=10, pady=10)
 
+    #aggiungi_listino = ttk.Button(nuovo_listino_frame, text="Aggiungi listino", command= lambda: add_listino(tipologie_treeview, nuova_tipologia_nome, nuova_tipologia_posizione, nuova_tipologia_colore))
+    #aggiungi_listino.pack(side='left', padx=10, pady=10)
+
+    modifica_listino_frame = ttk.Frame(listini_view)
+    modifica_listino_frame.pack()
+
+    modifica_listino_label = ttk.Label(modifica_listino_frame, text="Listino da modificare:")
+    modifica_listino_label.pack(side='left', padx=10, pady=10)
+
+    modifica_listino_id_nome = tk.StringVar()
+    modifica_listino_id_nome_combobox = ttk.Combobox(modifica_listino_frame, textvariable=modifica_listino_id_nome)
+    modifica_listino_id_nome_combobox['state'] = 'readonly'
+    modifica_listino_id_nome_combobox.pack(side='left', padx=10, pady=10)
+
+    aggiorna_combobox_listino = ttk.Button(modifica_listino_frame, text="Aggiorna listino", command= lambda: get_listini(modifica_listino_id_nome_combobox))
+    aggiorna_combobox_listino.pack(side='left', padx=10, pady=10)
+
+    cassa_per_listino = tk.StringVar()
+    collega_cassa_a_listino_combobox = ttk.Combobox(modifica_listino_frame, textvariable=cassa_per_listino)
+    collega_cassa_a_listino_combobox['state'] = 'readonly'
+    collega_cassa_a_listino_combobox.pack(side='left', padx=10, pady=10)
+
+    aggiorna_combobox_cassa_listino = ttk.Button(modifica_listino_frame, text="Aggiorna casse",
+                                           command=lambda: get_profili(collega_cassa_a_listino_combobox))
+    aggiorna_combobox_cassa_listino.pack(side='left', padx=10, pady=10)
 
 
+    articoli_per_listino_treeview = ttk.Treeview(listini_view, columns=('aggiungi_rimuovi', 'id', 'nome', 'nome_breve', 'tipologia', 'prezzo'),
+                          show='headings')
+
+    articoli_per_listino_treeview.heading('aggiungi_rimuovi', text='Aggiungi/rimuovi articolo')
+    articoli_per_listino_treeview.heading('id', text='Id articolo')
+    articoli_per_listino_treeview.heading('nome', text='Nome articolo')
+    articoli_per_listino_treeview.heading('nome_breve', text='Nome breve articolo')
+    articoli_per_listino_treeview.heading('tipologia', text='Id tipologia')
+    articoli_per_listino_treeview.heading('prezzo', text='Prezzo')
+
+    articoli_per_listino_treeview.column('aggiungi_rimuovi', width=40)
+    articoli_per_listino_treeview.column('id')
+    articoli_per_listino_treeview.column('nome')
+    articoli_per_listino_treeview.column('nome_breve')
+    articoli_per_listino_treeview.column('tipologia')
+    articoli_per_listino_treeview.column('prezzo')
+
+    #articoli_per_listino_treeview['displaycolumns'] = ('rimuovi', 'nome', 'sfondo')
+
+    articoli_per_listino_treeview.pack(fill='both', expand=True)
+
+    articoli_per_listino_treeview.bind("<ButtonRelease-1>", lambda event, apl=articoli_per_listino_treeview: on_articoli_per_listino_select(event, apl))
+
+    #refresh_?? (articoli_per_listino_treeview)

@@ -4,6 +4,18 @@ from .connection import get_connection, jason, single_jason
 bp = Blueprint('listini', __name__)
 
 
+@bp.get('/listini')
+def get_listini():
+    cur = get_connection().cursor()
+    query = """
+        SELECT *
+        FROM listini
+        ORDER BY nome;
+        """
+    cur.execute(query, )
+    return jason(cur)
+
+
 @bp.get('/listini_cassa/<int:cassa>')
 def get_listini_cassa(cassa):
     cur = get_connection().cursor()
