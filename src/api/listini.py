@@ -1,11 +1,18 @@
 from flask import Blueprint, jsonify, request
-from .connection import get_connection, jason_cur, single_jason_cur, col_names, single_jason
+from .connection import get_connection, jason_cur, exists_element
 
 bp = Blueprint('listini', __name__)
 
 
-def get_listino(id_listino):
+def get_listini():
     pass
+
+
+@bp.get('/listini/<int:id_listino>')
+def get_listino(id_listino):
+    exists, listino = exists_element('listini', id_listino)
+    return jsonify(listino) if exists else "Listino non trovato", 404
+
 
 @bp.get('/listini_cassa/<int:cassa>')
 def get_listini_cassa(cassa):
@@ -37,11 +44,11 @@ def create_listino():
 
 @bp.put('/listini/<int:id_listino>')
 def update_listino(id_listino):
-    cur = get_connection().cursor()
-    cur.execute("SELECT * FROM listini WHERE id = %s", (id_listino,))
-    if cur.rowcount == 0:
+    exists, listino = exists_element('listini', id_listino)
+    if not exists:
         return "Listino non trovato", 404
 
+    cur = get_connection().cursor()
     content = request.get_json()
     query = "UPDATE listini SET nome = %s WHERE id = %s;"
     try:
@@ -52,19 +59,16 @@ def update_listino(id_listino):
         return "Errore durante l'aggiornamento del listino", 500
 
 
-
 @bp.delete('/listini/<int:id_listino>')
 def delete_listino(id_listino):
-    cur = get_connection().cursor()
-    cur.execute("SELECT * FROM listini WHERE id = %s", (id_listino,))
-    if cur.rowcount == 0:
+    exists, listino = exists_element('listini', id_listino)
+    if not exists:
         return "Listino non trovato", 404
 
+    cur = get_connection().cursor()
     try:
-        listino = cur.fetchone()
-        cols = col_names(cur)
         cur.execute("DELETE FROM listini WHERE id = %s;", (id_listino,))
-        return single_jason(cols, listino)
+        return jsonify(listino)
     except Exception as e:
         print(e)
         return "Errore durante la cancellazione del listino", 500

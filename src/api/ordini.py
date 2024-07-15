@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
-from .connection import get_connection, jason_cur, single_jason_cur, col_names, single_jason
+from .connection import get_connection, col_names, exists_element
 import json
 
 bp = Blueprint('ordini', __name__)
@@ -15,22 +15,21 @@ def get_ordini():
     return Response(json.dumps(ordini, default=str), mimetype='application/json')
 
 
-@bp.get('/ordini/<int:id_ordine>')
-def get_ordine(id_ordine):
-    cur = get_connection().cursor()
-    cur.execute("SELECT * FROM ordini WHERE id = %s;", (id_ordine, ))
-
-    if cur.rowcount == 0:
-        return "Ordine non trovato", 404
-    else:
-        return Response(json.dumps(format_ordine(cur), default=str), mimetype='application/json')
-
-
 def format_ordine(cur):
     cols = col_names(cur)
     ordine = dict(zip(cols, cur.fetchone()))
     ordine['ora'] = ordine['ora'].replace(microsecond=0)
     return ordine
+
+
+@bp.get('/ordini/<int:id_ordine>')
+def get_ordine(id_ordine):
+    exists, ordine = exists_element('ordini', id_ordine)
+    if exists:
+        ordine['ora'] = ordine['ora'].replace(microsecond=0)
+        return Response(json.dumps(ordine, default=str), mimetype='application/json')
+    else:
+        return "Ordine non trovato", 404
 
 
 @bp.post('/ordini')
@@ -78,17 +77,14 @@ def create_ordine():
 
 @bp.delete('/ordini/<id_ordine>')
 def delete_ordine(id_ordine):
-    cur = get_connection().cursor()
-    cur.execute("SELECT * FROM ordini WHERE id = %s;", (id_ordine,))
-    if cur.rownumber == 0:
-        return "Ordine non trovato"
+    exists, ordine = exists_element('ordini', id_ordine)
+    if not exists:
+        return "Ordine non trovato", 404
 
+    cur = get_connection().cursor()
     try:
-        ordine = cur.fetchone()
-        cols = col_names(cur)
         cur.execute("DELETE FROM ordini WHERE id = %s;", (id_ordine,))
-        return single_jason(cols, ordine)
+        return jsonify(ordine)
     except Exception as e:
         print(e)
         return "Errore durante la cancellazione dell'ordine"
-
