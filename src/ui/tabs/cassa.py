@@ -163,7 +163,7 @@ def draw_cassa(notebook, profile):
     orders.heading('id_articolo', text='')
 
     orders.grid(row=1, column=0, sticky='nswe')
-    orders.bind("<Button-1>", lambda event, ord=orders: on_select(event, ord))
+    orders.bind("<ButtonRelease-1>", lambda event, ord=orders: on_select(event, ord))
 
     orders.column('rimuovi', width=40)
     #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare. click sinistro su rimuovi per rimuovere
@@ -293,10 +293,10 @@ def draw_cassa(notebook, profile):
     omaggio_value = tk.BooleanVar()
     servizio_value = tk.BooleanVar()
 
-    def toggle_checkbox(event, var):
+    def toggle_checkbox(event, var): #TODO sposta in file funzioni generiche unisci con articoli
         var.set(not var.get())
 
-    def crea_checkbox(label_text, var):
+    def crea_checkbox(label_text, var): #TODO sposta in file funzioni generiche unisci con articoli
         frame = tk.Frame(options_frame, borderwidth=1, relief=tk.RIDGE)
 
         checkbox = tk.Checkbutton(frame, variable=var, onvalue=True, offvalue=False)
@@ -305,8 +305,8 @@ def draw_cassa(notebook, profile):
         label = tk.Label(frame, text=label_text)
         label.pack(side='left', padx=5)
 
-        frame.bind("<Button-1>", lambda event: toggle_checkbox(event, var))
-        label.bind("<Button-1>", lambda event: toggle_checkbox(event, var))
+        frame.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
+        label.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
 
         return frame
 

@@ -37,6 +37,17 @@ def refresh_colori(treeview):
             treeview.tag_configure(nome_tag, background=colore)
             treeview.item(riga, tags=nome_tag)
 
+def on_articoli_select(event, treeview): #TODO unisci a on_select di cassa.py e sposta in modulo per funzioni generiche
+    region = treeview.identify("region", event.x, event.y)
+    if region == "cell":
+        indice_colonna = treeview.identify_column(event.x)
+        nome_colonna = treeview.column(indice_colonna)['id']
+        id_riga = treeview.identify_row(event.y)
+        if nome_colonna == 'nome':
+            on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna)
+
+        elif nome_colonna == 'rimuovi':
+            on_select_rimuovi(treeview, id_riga)
 
 def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna): #TODO unisci a on_select_modifica di cassa.py e sposta in modulo per funzioni generiche
     # click sinistro per modificare nome. "invio" o click fuori per modificare, "esc" per annullare
@@ -75,9 +86,9 @@ def on_select_rimuovi(treeview, id_riga):
     if reply == 'yes':
         #api_delete(treeview.item(id_riga, 'values')[3])  #TODO DELETE REQUEST API (api_delete è un nome temporaneo, il valore in posizione 3 è 'id')
         treeview.delete(id_riga)
-def add_tipologia(tipologie_treeview, nome, posizione, colore):
+def add_articolo(articoli_treeview, nome, nome_breve, id_tipologia, prezzo, copia_cliente, copia_cucina, copia_bar, copia_pizzeria, copia_rosticceria):
     #TODO post_api(nome, posizione, colore) Devo passare altro?
-    refresh_tipologie_treeview(tipologie_treeview)
+    refresh_articoli_treeview(articoli_treeview)
 
 
 def refresh_tipologie_treeview(tipologie_treeview):
@@ -89,6 +100,20 @@ def refresh_tipologie_treeview(tipologie_treeview):
                         values=('-', item['nome'], item['sfondo'], item['id'], item['posizione'], item['visibile']))
     refresh_colori(tipologie_treeview)
 
+def refresh_articoli_treeview(articoli_treeview):
+    for riga in articoli_treeview.get_children():
+        articoli_treeview.delete(riga)
+
+    for item in api_get('/articoli'):
+        articoli_treeview.insert('', 'end',
+                        values=('-', item['id'],  item['nome'], item['nome_breve'], item['tipologia'], item['prezzo'], item['copia_cliente'], item['copia_cucina'], item['copia_bar'], item['copia_pizzeria'], item['copia_rosticceria']))
+
+def get_tipologie(combobox):
+    tipologie = []
+    for item in api_get('/tipologie'):
+        tipologia = str(item['id']) + ' ' + item['nome']
+        tipologie.append(tipologia)
+    combobox['values'] = tuple(tipologie)
 
 def draw_articoli(notebook, profile):
     tab = ttk.Frame(notebook)
@@ -108,7 +133,119 @@ def draw_articoli(notebook, profile):
     listini_page = add_notebook_frame(articoli_notebook, 'Listini')
 
     # articoli_page
-    # tipologie_frame
+
+    articoli_view = ttk.Frame(articoli_page)
+    articoli_view.pack(fill='both', expand=True)
+    # frame di inserimento articoli
+    nuovo_articolo_frame = ttk.Frame(articoli_view)
+    nuovo_articolo_frame.pack()
+
+    nuovo_articolo_nome_label = ttk.Label(nuovo_articolo_frame, text="Nome nuovo articolo:")
+    nuovo_articolo_nome_label.pack(side='left', padx=10, pady=10)
+
+    nuovo_articolo_nome = tk.StringVar()
+    nuovo_articolo_nome_entry = ttk.Entry(nuovo_articolo_frame, textvariable=nuovo_articolo_nome)
+    nuovo_articolo_nome_entry.pack(side='left', padx=10, pady=10)
+
+    nuovo_articolo_nome_breve_label = ttk.Label(nuovo_articolo_frame, text="Nome breve nuovo articolo:")
+    nuovo_articolo_nome_breve_label.pack(side='left', padx=10, pady=10)
+
+    nuovo_articolo_nome_breve = tk.StringVar()
+    nuovo_articolo_nome_breve_entry = ttk.Entry(nuovo_articolo_frame, textvariable=nuovo_articolo_nome_breve)
+    nuovo_articolo_nome_breve_entry.pack(side='left', padx=10, pady=10)
+
+    nuovo_articolo_tipologia = tk.StringVar()
+    nuovo_articolo_tipologia_combobox = ttk.Combobox(nuovo_articolo_frame, textvariable=nuovo_articolo_tipologia)
+    nuovo_articolo_tipologia_combobox['state'] = 'readonly'
+    nuovo_articolo_tipologia_combobox.pack(side='left', padx=10, pady=10)
+
+    nuovo_articolo_tipologia_combobox['values'] = ()
+    nuovo_articolo_tipologia_combobox.bind('<ButtonRelease-1>', lambda event: get_tipologie(nuovo_articolo_tipologia_combobox))
+
+
+    nuovo_articolo_prezzo_label = ttk.Label(nuovo_articolo_frame, text="Prezzo:")
+    nuovo_articolo_prezzo_label.pack(side='left', padx=10, pady=10)
+
+    nuovo_articolo_prezzo = tk.StringVar()
+    nuovo_articolo_prezzo_entry = ttk.Entry(nuovo_articolo_frame, textvariable=nuovo_articolo_prezzo, width=10)
+    nuovo_articolo_prezzo_entry.pack(side='left', padx=10, pady=10)
+
+
+    copia_cliente = tk.BooleanVar()
+    copia_cucina = tk.BooleanVar()
+    copia_bar = tk.BooleanVar()
+    copia_pizzeria = tk.BooleanVar()
+    copia_rosticceria = tk.BooleanVar()
+
+
+    def toggle_checkbox(event, var): #TODO sposta in file funzioni generiche unisci con cassa
+        var.set(not var.get())
+
+    def crea_checkbox(label_text, var): #TODO sposta in file funzioni generiche unisci con cassa
+        frame = tk.Frame(nuovo_articolo_frame, borderwidth=1, relief=tk.RIDGE)
+
+        checkbox = tk.Checkbutton(frame, variable=var, onvalue=True, offvalue=False)
+        checkbox.pack(side='left')
+
+        label = tk.Label(frame, text=label_text)
+        label.pack(side='left', padx=5)
+
+        frame.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
+        label.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
+
+        return frame
+
+    copia_cliente_checkbox = crea_checkbox("Copia cliente", copia_cliente)
+    copia_cucina_checkbox = crea_checkbox("Copia cucina", copia_cucina)
+    copia_bar_checkbox = crea_checkbox("Copia bar", copia_bar)
+    copia_pizzeria_checkbox = crea_checkbox("Copia pizzeria", copia_pizzeria)
+    copia_rosticceria = crea_checkbox("Copia rosticceria", copia_rosticceria)
+    copia_cliente_checkbox.pack(side='left', padx=5, pady=5)
+    copia_cucina_checkbox.pack(side='left', padx=5, pady=5)
+    copia_bar_checkbox.pack(side='left', padx=5, pady=5)
+    copia_pizzeria_checkbox.pack(side='left', padx=5, pady=5)
+    copia_rosticceria.pack(side='left', padx=5, pady=5)
+
+
+    articoli_treeview = ttk.Treeview(articoli_view, columns=('rimuovi', 'id', 'nome', 'nome_breve', 'tipologia', 'prezzo', 'copia_cliente', 'copia_cucina', 'copia_bar', 'copia_pizzeria', 'copia_rosticceria'),
+                          show='headings')
+    articoli_treeview.heading('rimuovi', text='Rimuovi articolo')
+    articoli_treeview.heading('id', text='Id articolo')
+    articoli_treeview.heading('nome', text='Nome articolo')
+    articoli_treeview.heading('nome_breve', text='Nome breve articolo')
+    articoli_treeview.heading('tipologia', text='Tipologia articolo')
+    articoli_treeview.heading('prezzo', text='Prezzo')
+    articoli_treeview.heading('copia_cliente', text='Copia Cliente')
+    articoli_treeview.heading('copia_cucina', text='Copia cucina')
+    articoli_treeview.heading('copia_bar', text='Copia bar')
+    articoli_treeview.heading('copia_pizzeria', text='Copia pizzeria')
+    articoli_treeview.heading('copia_rosticceria', text='Copia rosticceria')
+
+    articoli_treeview.column('rimuovi', width=40)
+    articoli_treeview.column('id')
+    articoli_treeview.column('nome')
+    articoli_treeview.column('nome_breve')
+    articoli_treeview.column('tipologia')
+    articoli_treeview.column('prezzo')
+    articoli_treeview.column('copia_cliente', width=40)
+    articoli_treeview.column('copia_cucina', width=40)
+    articoli_treeview.column('copia_bar', width=40)
+    articoli_treeview.column('copia_pizzeria', width=40)
+    articoli_treeview.column('copia_rosticceria', width=40)
+
+    #articoli_treeview['displaycolumns'] = ('rimuovi', 'nome', 'tipologia')
+
+    articoli_treeview.pack(fill='both', expand=True)
+
+    articoli_treeview.bind("<ButtonRelease-1>", lambda event, tip=articoli_treeview: on_articoli_select(event, tip))
+
+    #refresh_articoli_treeview(articoli_treeview)
+
+    #aggiungi_articolo = ttk.Button(nuovo_articolo_frame, text="Aggiungi articolo", command= lambda: add_articolo(articoli_treeview, nuovo_articolo_nome.get(), nuovo_articolo_nome_breve.get(), nuovo_articolo_tipologia.get()[0], nuovo_articolo_prezzo.get(), copia_cliente.get(), copia_cucina.get(), copia_bar.get(), copia_pizzeria.get(), copia_rosticceria.get()))
+    #aggiungi_articolo.pack(side='left', padx=10, pady=10)
+
+
+    # tipologie_page
     tipologie_view = ttk.Frame(tipologie_page)
     tipologie_view.pack(fill='both', expand=True)
     # frame di inserimento tipologie
@@ -144,7 +281,7 @@ def draw_articoli(notebook, profile):
     tipologie_treeview.heading('sfondo', text='Colore sfondo')
     tipologie_treeview.heading('visibile', text='')
 
-    tipologie_treeview.column('rimuovi')
+    tipologie_treeview.column('rimuovi', width=40)
     tipologie_treeview.column('id')
     tipologie_treeview.column('nome')
     tipologie_treeview.column('posizione')
@@ -155,11 +292,27 @@ def draw_articoli(notebook, profile):
 
     tipologie_treeview.pack(fill='both', expand=True)
 
-    tipologie_treeview.bind("<Button-1>", lambda event, tip=tipologie_treeview: on_tipologie_select(event, tip))
+    tipologie_treeview.bind("<ButtonRelease-1>", lambda event, tip=tipologie_treeview: on_tipologie_select(event, tip))
 
     refresh_tipologie_treeview(tipologie_treeview)
 
-    aggiungi_tipologia = ttk.Button(nuova_tipologia_frame, text="Aggiungi tipologia", command= lambda: add_tipologia(tipologie_treeview, nuova_tipologia_nome, nuova_tipologia_posizione, nuova_tipologia_colore))
+    aggiungi_tipologia = ttk.Button(nuova_tipologia_frame, text="Aggiungi tipologia", command= lambda: add_articolo(tipologie_treeview, nuova_tipologia_nome, nuova_tipologia_posizione, nuova_tipologia_colore))
     aggiungi_tipologia.pack(side='left', padx=10, pady=10)
 
     # listini_page
+
+    listini_view = ttk.Frame(listini_page)
+    listini_view.pack(fill='both', expand=True)
+    # frame di inserimento articoli
+    nuovo_listino_frame = ttk.Frame(listini_view)
+    nuovo_listino_frame.pack()
+
+    nuovo_listino_nome_label = ttk.Label(nuovo_listino_frame, text="Nome nuovo listino:")
+    nuovo_listino_nome_label.pack(side='left', padx=10, pady=10)
+
+    nuovo_listino_nome = tk.StringVar()
+    nuovo_listino_nome_entry = ttk.Entry(nuovo_listino_frame, textvariable=nuovo_listino_nome)
+    nuovo_listino_nome_entry.pack(side='left', padx=10, pady=10)
+
+
+
