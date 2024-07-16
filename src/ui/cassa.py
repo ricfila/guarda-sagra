@@ -1,22 +1,19 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, colorchooser
 import functools
-from .funzioni_generiche import api_get, api_post
+from .funzioni_generiche import api_get, api_post, crea_checkbox, on_treeview_select, update_bill
 
-
-
-
-def salva(orders, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
+def salva(ordini_treeview, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
     data_to_send = {}
 
     for item in valori_ordine:
         data_to_send[item[0]] = item[1]
 
     articles = []
-    for item in orders.get_children():
+    for item in ordini_treeview.get_children():
         item_data = {}
         for column in ('qta', 'note', 'id_listino', 'id_articolo'):
-            item_data[column] = orders.item(item, 'values')[orders['columns'].index(column)]
+            item_data[column] = ordini_treeview.item(item, 'values')[ordini_treeview['columns'].index(column)]
         articles.append(item_data)
 
     data_to_send['articoli'] = articles
@@ -24,8 +21,8 @@ def salva(orders, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza 
     response = api_post('/ordini', data_to_send)
 
     #if response.status_code == 200: #TODO non so cosa mi ritorna una post corretta, da aggiornare quando si riesce a fare le post
-        #for item in orders.get_children():
-            #orders.delete(item)
+        #for item in ordini_treeview.get_children():
+            #ordini_treeview.delete(item)
 
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
@@ -33,98 +30,25 @@ def max_4_chars_and_only_digits(string):
 def max_4_chars(text):
     return len(text) <= 4
 
-def insert_order(orders, articolo, id_listino):
-    matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][6] == articolo['id']), None)
+def insert_order(ordini_treeview, articolo, id_listino, bill, bill_formatted_text):
+    matching_item = next((item for item in ordini_treeview.get_children() if ordini_treeview.item(item)['values'][6] == articolo['id']), None)
 
     if matching_item:
-        current_values = orders.item(matching_item)['values']
+        current_values = ordini_treeview.item(matching_item)['values']
         new_first_value = int(current_values[1]) + 1
         updated_values = ('-', str(new_first_value),) + tuple(current_values[2:])
-        orders.item(matching_item, values=updated_values)
+        ordini_treeview.item(matching_item, values=updated_values)
     else:
-        orders.insert('', 'end', values=('-','1', articolo['nome_breve'], articolo['prezzo'], '', id_listino, articolo['id']))
-    update_bill(orders)
-
-def on_select(event, orders):
-    region = orders.identify("region", event.x, event.y)
-    if region == "cell":
-        col_index = orders.identify_column(event.x)
-        col = orders.column(col_index)['id']
-        item = orders.identify_row(event.y)
-        if col == 'note':
-            on_select_note_edit(orders, item, col_index)
-        elif col == 'rimuovi':
-            on_select_delete(orders, item)
-
-
-def on_select_delete(orders, item):
-    current_values = orders.item(item, 'values')
-    if current_values[1] == '1':
-        orders.delete(item)
-    else:
-        decremented_first_value = int(current_values[1]) - 1
-        updated_values = ('-', str(decremented_first_value),) + tuple(current_values[2:])
-        orders.item(item, values=updated_values)
-    update_bill(orders)
-
-
-
-def on_select_note_edit(orders, item, col_index):
-    # click sinistro per modificare note. "invio" o click fuori per modificare, "esc" per annullare
-    bbox = orders.bbox(item, 'note')
-
-    if bbox:
-        x, y, width, height = bbox
-        current_value = orders.item(item, 'values')[int(col_index[1:])-1]
-        edit_entry = ttk.Entry(orders, width=width)
-        edit_entry.insert(0, current_value)
-
-        def save_edit(event):
-            new_value = edit_entry.get()
-            orders.set(item, 'note', new_value)
-            edit_entry.destroy()
-
-        edit_entry.bind("<Return>", save_edit) # invio
-        edit_entry.bind("<FocusOut>", save_edit)  # se si vuole eliminare la modifica clickando al di fuori, modifica in cancel_edit
-
-        def cancel_edit(event):
-            edit_entry.destroy()
-            orders.set(item, 'note', current_value)
-
-
-        edit_entry.bind("<Escape>", cancel_edit)
-
-        edit_entry.place(x=x, y=y, width=width, height=height)
-        edit_entry.update_idletasks()
-        def set_focus():
-            edit_entry.focus_set()
-        edit_entry.after_idle(set_focus)
-
-def update_bill(orders):
-    total_price = 0.0
-
-    for item in orders.get_children():
-        price_idx = orders['columns'].index('prezzo')
-        qta_idx = orders['columns'].index('qta')
-        price_str = orders.item(item, 'values')[price_idx]
-        try:
-            price = float(price_str)
-        except ValueError:
-            continue
-        qta_str = orders.item(item, 'values')[qta_idx]
-        try:
-            qta = int(qta_str)
-        except ValueError:
-            continue
-
-        item_total = price * qta
-        total_price += item_total
-    bill.set(total_price)
-    bill_formatted_text.set(f"€ {bill.get():,.2f}")
+        ordini_treeview.insert('', 'end', values=('-','1', articolo['nome_breve'], articolo['prezzo'], '', id_listino, articolo['id']))
+    update_bill(ordini_treeview, bill, bill_formatted_text)
 
 def draw_cassa(notebook, profile):
     tab = ttk.Frame(notebook)
     notebook.add(tab, text="Cassa")
+
+    # inizializzo variabili usate in bill_frame
+    bill = tk.DoubleVar()
+    bill_formatted_text = tk.StringVar()
 
     # suddivido in frames:
     info_frame = ttk.Frame(tab)
@@ -144,24 +68,26 @@ def draw_cassa(notebook, profile):
 
     # gestisco treeview per ordini
 
-    orders = ttk.Treeview(tab,
+    ordini_treeview = ttk.Treeview(tab,
                           columns=('rimuovi', 'qta', 'piatto', 'prezzo', 'note', 'id_listino', 'id_articolo'),
                           show='headings')
 
-    orders['displaycolumns'] = ('rimuovi', 'qta', 'piatto', 'prezzo', 'note')
+    ordini_treeview['displaycolumns'] = ('rimuovi', 'qta', 'piatto', 'prezzo', 'note')
 
-    orders.heading('rimuovi', text='Rimuovi')
-    orders.heading('qta', text='Qtà')
-    orders.heading('piatto', text='Piatto')
-    orders.heading('prezzo', text='Prezzo')
-    orders.heading('note', text='Note')
-    orders.heading('id_listino', text='Id listino')
-    orders.heading('id_articolo', text='Id articolo')
+    ordini_treeview.heading('rimuovi', text='Rimuovi')
+    ordini_treeview.heading('qta', text='Qtà')
+    ordini_treeview.heading('piatto', text='Piatto')
+    ordini_treeview.heading('prezzo', text='Prezzo')
+    ordini_treeview.heading('note', text='Note')
+    ordini_treeview.heading('id_listino', text='Id listino')
+    ordini_treeview.heading('id_articolo', text='Id articolo')
 
-    orders.grid(row=1, column=0, sticky='nswe')
-    orders.bind("<ButtonRelease-1>", lambda event, ord=orders: on_select(event, ord))
+    ordini_treeview.grid(row=1, column=0, sticky='nswe')
+    ordini_treeview.bind("<ButtonRelease-1>", lambda event, ord=ordini_treeview: on_treeview_select(event,
+                                                                                                    'ordini_treeview',
+                                                                                                    ord, bill, bill_formatted_text))
 
-    orders.column('rimuovi', width=40)
+    ordini_treeview.column('rimuovi', width=40)
     #click sinistro su nota per modificare. "invio" per modificare, "esc" per annullare. click sinistro su rimuovi per rimuovere
 
     # suddivido e gestisco info_frame
@@ -179,14 +105,14 @@ def draw_cassa(notebook, profile):
     coperti_label = ttk.Label(n_info_frame, text="Coperti:")
     coperti_name = tk.StringVar()
     coperti_name_entry = ttk.Entry(n_info_frame, textvariable=coperti_name, validate='key',
-                                   validatecommand=(n_info_frame.register(max_4_chars_and_only_digits), '%P'), width=4)  #TODO verifica su input. da rivedere, usa come esempio
+                                   validatecommand=(n_info_frame.register(max_4_chars_and_only_digits), '%P'), width=4)  #TODO validate fa verifica su input. da rivedere, usa come esempio
     coperti_label.pack(side='left', padx=(10, 2))
     coperti_name_entry.pack(side='left', padx=(2, 10))
 
     tavolo_label = ttk.Label(n_info_frame, text="Tavolo:")
     tavolo_name = tk.StringVar()
     tavolo_name_entry = ttk.Entry(n_info_frame, textvariable=tavolo_name, validate='key',
-                                  validatecommand=(n_info_frame.register(max_4_chars), '%P'), width=4)  #TODO verifica su input. da rivedere, usa come esempio
+                                  validatecommand=(n_info_frame.register(max_4_chars), '%P'), width=4)  #TODO validate fa verifica su input. da rivedere, usa come esempio
     tavolo_label.pack(side='left', padx=(10, 2))
     tavolo_name_entry.pack(side='left', padx=(2, 10))
 
@@ -210,8 +136,8 @@ def draw_cassa(notebook, profile):
 
         lista_tipologie =[]
         for item in lista_articoli:
-            if {'id': item['tipologia'], 'nome': item['nome']} not in lista_tipologie:
-                lista_tipologie.append({'id': item['tipologia'], 'nome': item['nome']})
+            if {'id': item['tipologia'], 'nome': item['nome_tipologia']} not in lista_tipologie:
+                lista_tipologie.append({'id': item['tipologia'], 'nome': item['nome_tipologia']})
 
         canvas = tk.Canvas(listino)
         canvas.pack(side='left', fill='both', expand=True)
@@ -244,26 +170,21 @@ def draw_cassa(notebook, profile):
                 #if articolo[sfondo] == hex: #TODO
                 #    colore = 'black'
                 button = ttk.Button(frame_buttons, text=articolo['nome_breve'],
-                                    command=functools.partial(insert_order, orders, articolo, item_listino['id']))
+                                    command=functools.partial(insert_order, ordini_treeview, articolo, item_listino['id'], bill, bill_formatted_text))
                 button.grid(row=i // 6, column=i % 6, padx=5, pady=5)
             canvas.update_idletasks()
             canvas.configure(scrollregion=canvas.bbox("all"))
     # gestisco bill_frame
-    global bill
-    bill = tk.DoubleVar()
-
-    global bill_formatted_text
-    bill_formatted_text = tk.StringVar()
-
+    # bill e bill_formatted_text vengono inizializzati all'inizio della funzione
     bill.set(0.00)
     totals_label = ttk.Label(bill_frame, text="Totale: ")
     totals_label.pack(side='left', padx=50)
 
     bill_label = tk.Label(bill_frame, textvariable=bill_formatted_text)
     bill_label.pack(side='left')
-    update_bill(orders)
+    update_bill(ordini_treeview, bill, bill_formatted_text)
 
-    def prepara_salvataggio(orders, profile_id):
+    def prepara_salvataggio(ordini_treeview, profile_id):
         valori_ordine = (
             ('id_profilo', profile_id),
             ('nome_cliente', str(cliente_name.get())),
@@ -275,8 +196,8 @@ def draw_cassa(notebook, profile):
             ('omaggio',str(omaggio_value.get())),
             ('servizio', str(servizio_value.get()))
         )
-        salva(orders, valori_ordine)
-    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, orders, profile['id']))
+        salva(ordini_treeview, valori_ordine)
+    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, ordini_treeview, profile['id']))
     salva_tutto.pack(side='bottom', pady=(0, 60))
 
     # gestisco options_frame
@@ -285,27 +206,10 @@ def draw_cassa(notebook, profile):
     omaggio_value = tk.BooleanVar()
     servizio_value = tk.BooleanVar()
 
-    def toggle_checkbox(event, var): #TODO sposta in file funzioni generiche unisci con articoli
-        var.set(not var.get())
-
-    def crea_checkbox(label_text, var): #TODO sposta in file funzioni generiche unisci con articoli
-        frame = tk.Frame(options_frame, borderwidth=1, relief=tk.RIDGE)
-
-        checkbox = tk.Checkbutton(frame, variable=var, onvalue=True, offvalue=False)
-        checkbox.pack(side='left')
-
-        label = tk.Label(frame, text=label_text)
-        label.pack(side='left', padx=5)
-
-        frame.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
-        label.bind("<ButtonRelease-1>", lambda event: toggle_checkbox(event, var))
-
-        return frame
-
-    asporto_checkbox = crea_checkbox("Asporto", asporto_value)
-    veloce_checkbox = crea_checkbox("Veloce", veloce_value)
-    omaggio_checkbox = crea_checkbox("Omaggio", omaggio_value)
-    servizio_checkbox = crea_checkbox("Servizio", servizio_value)
+    asporto_checkbox = crea_checkbox(options_frame, "Asporto", asporto_value)
+    veloce_checkbox = crea_checkbox(options_frame, "Veloce", veloce_value)
+    omaggio_checkbox = crea_checkbox(options_frame, "Omaggio", omaggio_value)
+    servizio_checkbox = crea_checkbox(options_frame, "Servizio", servizio_value)
 
     asporto_checkbox.grid(row=0, column=0, sticky='nsw')
     veloce_checkbox.grid(row=0, column=1, sticky='nsw')
