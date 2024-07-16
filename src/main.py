@@ -5,20 +5,15 @@ from ttkthemes import ThemedTk
 from tkinter import messagebox
 import sys  # used to end the program
 import profiles_logic  # contains the profile logic
-import main_window
+
 import config
 import threading
 import api
 
-def main(chosen_profile):
-    if chosen_profile is None:
-        profiles_logic.open_profiles_window('Guarda Sagra', (400, 300))
-    else:
-        main_app = main_window.Main_window(chosen_profile)
-        main_app.mainloop()
+def main():
+    profiles_logic.open_profiles_window('Guarda Sagra', (400, 300))
 
-
-if __name__ == "__main__":  # Starts the event loop for the main window
+if __name__ == "__main__":
     # Inizializza le configurazioni
     config.init()
 
@@ -26,7 +21,7 @@ if __name__ == "__main__":  # Starts the event loop for the main window
     thread = threading.Thread(target=api.init_thread, daemon=True)
     thread.start()
 
-    main(None)
+    main()
 
 '''
 def main():

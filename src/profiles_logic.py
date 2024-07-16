@@ -2,8 +2,12 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk, messagebox
 from ui.funzioni_generiche import api_get
-from main import main
+import main_window
+
 def open_profiles_window(title, size):
+    global logout_value
+    logout_value = False
+
     profiles_window = tk.Tk()
     profiles_window.title(title)
     profiles_window.geometry(f'{size[0]}x{size[1]}')
@@ -26,17 +30,24 @@ def profiles_choice(profiles_window, frame):
     for i, profile in enumerate(profiles):  # Inserts profile choice buttons
         ttk.Button(frame,
                    text=profile['nome'],
-                   command=lambda profile=profile: profile_selection(profiles_window, profile)).grid(row=i // 4,
+                   command=lambda prof=profile: profile_selection(profiles_window, prof)).grid(row=i // 4,
                                                                                    column=i % 4,
                                                                                    padx=5,
                                                                                    pady=5)
 
-def profile_selection(profiles_window, profile):
+def profile_selection(profiles_window, profilo_scelto):
     #if profile == 'Admin': #TODO INSERIMENTO PASSWORD
     #    open_login_window(profiles_window, profile)
     #else:
-        profiles_window.destroy()
-        main(profile)
+    logout_value = tk.BooleanVar() # creo una variabile da passare a main_window per distinguere tra logout e chiusura
+    logout_value.set(False)
+
+    profiles_window.destroy()
+    main_app = main_window.Main_window(profilo_scelto, logout_value)
+    main_app.mainloop()
+    if logout_value.get() == True:
+        open_profiles_window('Guarda Sagra', (400, 300))
+
 
 def open_login_window(profiles_window, profile):
     login_window = tk.Toplevel()
@@ -60,7 +71,6 @@ def password_confirm(profiles_window, profile, password):
     entered_password = password.get()
     if entered_password == "p":  # TODO vedi variabile password_from_db
         profiles_window.destroy()
-        main(profile)
 
 
     elif entered_password == "":
