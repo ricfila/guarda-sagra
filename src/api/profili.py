@@ -18,7 +18,7 @@ def get_profili():
 @bp.get('/profili/<int:id_profilo>')
 def get_profilo(id_profilo):
     exists, profilo = exists_element('profili', id_profilo)
-    return jsonify(profilo) if exists else "Profilo non trovato", 404
+    return jsonify(profilo) if exists else ("Profilo non trovato", 404)
 
 
 @bp.post('/profili')

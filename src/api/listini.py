@@ -18,7 +18,7 @@ def get_listini():
 @bp.get('/listini/<int:id_listino>')
 def get_listino(id_listino):
     exists, listino = exists_element('listini', id_listino)
-    return jsonify(listino) if exists else "Listino non trovato", 404
+    return jsonify(listino) if exists else ("Listino non trovato", 404)
 
 
 @bp.get('/listini_cassa/<int:cassa>')

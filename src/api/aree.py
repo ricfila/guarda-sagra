@@ -14,7 +14,7 @@ def get_aree():
 @bp.get('/aree/<int:id_area>')
 def get_area(id_area):
     exists, area = exists_element('aree', id_area)
-    return jsonify(area) if exists else "Area non trovata", 404
+    return jsonify(area) if exists else ("Area non trovata", 404)
 
 
 @bp.post('/aree')
