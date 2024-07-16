@@ -14,7 +14,7 @@ def get_tipologie():
 @bp.get('/tipologie/<int:id_tipologia>')
 def get_tipologia(id_tipologia):
     exists, tipologia = exists_element('tipologie', id_tipologia)
-    return jsonify(tipologia) if exists else "Tipologia non trovata", 404
+    return jsonify(tipologia) if exists else ("Tipologia non trovata", 404)
 
 
 @bp.post('/tipologie')

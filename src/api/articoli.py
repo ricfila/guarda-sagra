@@ -15,7 +15,7 @@ def get_articoli():
 @bp.get('/articoli/<int:id_articolo>')
 def get_articolo(id_articolo):
     exists, articolo = exists_element('articoli', id_articolo)
-    return jsonify(articolo) if exists else "Articolo non trovato", 404
+    return jsonify(articolo) if exists else ("Articolo non trovato", 404)
 
 
 # Restituisce la lista di articoli associati al listino, ordinati secondo il campo "posizione" in articoli_listini

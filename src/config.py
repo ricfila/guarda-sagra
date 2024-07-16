@@ -38,6 +38,8 @@ def init():
     configfile = open(config_file_path, 'w')
     configs.write(configfile)
 
+    configfile.close()
+
 ''' #ESEMPIO LETTURA DA CONFIG
 config = configparser.ConfigParser()
 config.sections() >>>[]
