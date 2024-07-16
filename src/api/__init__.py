@@ -30,4 +30,4 @@ def create_app():
 def init_thread():
     app = create_app()
     create_connection()
-    app.run("localhost", port=5000, debug=False)
+    app.run("localhost", port=5000, debug=False, threaded=True)
