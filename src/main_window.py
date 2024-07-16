@@ -5,7 +5,7 @@ from ttkthemes import ThemedTk
 from tkinter import messagebox
 import sys  # used to end the program
 import config
-from ui.tabs import *
+from ui import *
 class Main_window(tk.Tk):
     def __init__(self, profile):
         super().__init__()

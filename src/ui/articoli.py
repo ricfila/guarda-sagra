@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, colorchooser
-from config import api_get, api_post
+from .funzioni_generiche import api_get, api_post
 
 
 def toggle_checkbox(event, var):  # TODO sposta in file funzioni generiche unisci con cassa

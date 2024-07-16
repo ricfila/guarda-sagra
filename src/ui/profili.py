@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from config import api_get, api_post
+from .funzioni_generiche import api_get, api_post
 
 
 def draw_profiles(notebook):

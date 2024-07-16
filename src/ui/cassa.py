@@ -1,9 +1,8 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox, colorchooser
 import functools
-from config import api_get, api_post
-import requests
-import json
+from .funzioni_generiche import api_get, api_post
+
 
 
 
@@ -33,9 +32,6 @@ def max_4_chars_and_only_digits(string):
 
 def max_4_chars(text):
     return len(text) <= 4
-
-def replace_single_quotes(input_string):
-    return input_string.replace("'", "''")
 
 def insert_order(orders, articolo, id_listino):
     matching_item = next((item for item in orders.get_children() if orders.item(item)['values'][6] == articolo['id']), None)
@@ -158,9 +154,9 @@ def draw_cassa(notebook, profile):
     orders.heading('qta', text='Qtà')
     orders.heading('piatto', text='Piatto')
     orders.heading('prezzo', text='Prezzo')
-    orders.heading('note', text='Note')  #TODO la colonna note viene tagliata, al momento non riesco a sistemare
-    orders.heading('id_listino', text='')
-    orders.heading('id_articolo', text='')
+    orders.heading('note', text='Note')
+    orders.heading('id_listino', text='Id listino')
+    orders.heading('id_articolo', text='Id articolo')
 
     orders.grid(row=1, column=0, sticky='nswe')
     orders.bind("<ButtonRelease-1>", lambda event, ord=orders: on_select(event, ord))
@@ -174,30 +170,26 @@ def draw_cassa(notebook, profile):
     s_info_frame = ttk.Frame(info_frame)
     s_info_frame.pack(side='top', expand=True, fill='both')
 
-    # cliente
     cliente_label = ttk.Label(n_info_frame, text="Cliente:")
     cliente_name = tk.StringVar()
     cliente_name_entry = ttk.Entry(n_info_frame, textvariable=cliente_name, width=100)
     cliente_label.pack(side='left', padx=(10, 2))
     cliente_name_entry.pack(side='left', padx=(2, 10))
 
-    # coperti
     coperti_label = ttk.Label(n_info_frame, text="Coperti:")
     coperti_name = tk.StringVar()
     coperti_name_entry = ttk.Entry(n_info_frame, textvariable=coperti_name, validate='key',
-                                   validatecommand=(n_info_frame.register(max_4_chars_and_only_digits), '%P'), width=4)
+                                   validatecommand=(n_info_frame.register(max_4_chars_and_only_digits), '%P'), width=4)  #TODO verifica su input. da rivedere, usa come esempio
     coperti_label.pack(side='left', padx=(10, 2))
     coperti_name_entry.pack(side='left', padx=(2, 10))
 
-    # tavolo
     tavolo_label = ttk.Label(n_info_frame, text="Tavolo:")
     tavolo_name = tk.StringVar()
     tavolo_name_entry = ttk.Entry(n_info_frame, textvariable=tavolo_name, validate='key',
-                                  validatecommand=(n_info_frame.register(max_4_chars), '%P'), width=4)
+                                  validatecommand=(n_info_frame.register(max_4_chars), '%P'), width=4)  #TODO verifica su input. da rivedere, usa come esempio
     tavolo_label.pack(side='left', padx=(10, 2))
     tavolo_name_entry.pack(side='left', padx=(2, 10))
 
-    # note
     note_ordine_label = ttk.Label(s_info_frame, text="Note:")
     note_ordine_name = tk.StringVar()
     note_ordine_name_entry = ttk.Entry(s_info_frame, textvariable=note_ordine_name)

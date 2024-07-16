@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk, messagebox
-import requests
-from config import api_get
+from ui.funzioni_generiche import api_get
 from main import main
 def open_profiles_window(title, size):
     profiles_window = tk.Tk()
