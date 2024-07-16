@@ -25,6 +25,7 @@ def create_tipologia():
     try:
         cur.execute("INSERT INTO tipologie (nome, posizione, sfondo, visibile) VALUES (%s, %s, %s, %s) RETURNING id;",
                     (content['nome'], content['posizione'], content['sfondo'], content['visibile']))
+        get_connection().commit()
         id_tipologia = cur.fetchone()[0]
         return get_tipologia(id_tipologia), 201
     except Exception as e:
@@ -56,6 +57,7 @@ def update_tipologia(id_tipologia, col, value):
     cur = get_connection().cursor()
     try:
         cur.execute("UPDATE tipologie SET {} = %s WHERE id = %s".format(col), (id_tipologia, value))
+        get_connection().commit()
         return get_tipologia(id_tipologia)
     except Exception as e:
         print(e)
@@ -71,6 +73,7 @@ def delete_tipologia(id_tipologia):
     cur = get_connection().cursor()
     try:
         cur.execute("DELETE FROM tipologie WHERE id = %s", (id_tipologia,))
+        get_connection().commit()
         return jsonify(tipologia)
     except Exception as e:
         print(e)

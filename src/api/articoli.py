@@ -62,6 +62,7 @@ def create_articolo():
         cur.execute(query, (content['nome'], content['nome_breve'], content['prezzo'],
                             content['copia_cliente'], content['copia_cucina'], content['copia_bar'],
                             content['copia_pizzeria'], content['copia_rosticceria']))
+        get_connection().commit()
         id_articolo = cur.fetchone()[0]
         return get_articolo(id_articolo), 201
     except Exception as e:
@@ -84,6 +85,7 @@ def update_articolo(id_articolo):
                             content['copia_cliente'], content['copia_cucina'], content['copia_bar'],
                             content['copia_pizzeria'], content['copia_rosticceria'],
                             id_articolo))
+        get_connection().commit()
         return get_articolo(id_articolo)
     except Exception as e:
         print(e)
@@ -99,6 +101,7 @@ def delete_articolo(id_articolo):
     cur = get_connection().cursor()
     try:
         cur.execute("DELETE FROM articoli WHERE id = %s;", (id_articolo,))
+        get_connection().commit()
         return jsonify(articolo)
     except Exception as e:
         print(e)

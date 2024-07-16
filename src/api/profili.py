@@ -79,6 +79,7 @@ def delete_profilo(id_profilo):
             return "Impossibile cancellare il profilo, ci sono {} ordini collegati ad esso".format(cur.rowcount), 403
 
         cur.execute("DELETE FROM profili WHERE id = %s", (id_profilo,))
+        get_connection().commit()
         return jsonify(profilo)
     except Exception as e:
         print(e)
