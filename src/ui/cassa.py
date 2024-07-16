@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox, colorchooser
 import functools
 from .funzioni_generiche import api_get, api_post, crea_checkbox, on_treeview_select, update_bill
 
-def salva(ordini_treeview, valori_ordine): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
+def salva(ordini_treeview, valori_ordine, bill, bill_formatted_text): #TODO Bisognerebbe anche mettere in sicurezza sta roba, ovvero oltre ai dati che invia normalmente la cassa dovrebbe inviare ad esempio una stringa identificativa della sessione che ha ricevuto dal server al momento del login. Facciamo che ci penseremo più avanti
     data_to_send = {}
 
     for item in valori_ordine:
@@ -20,9 +20,10 @@ def salva(ordini_treeview, valori_ordine): #TODO Bisognerebbe anche mettere in s
 
     response = api_post('/ordini', data_to_send)
 
-    #if response.status_code == 200: #TODO non so cosa mi ritorna una post corretta, da aggiornare quando si riesce a fare le post
-        #for item in ordini_treeview.get_children():
-            #ordini_treeview.delete(item)
+    if response == 201:
+        for item in ordini_treeview.get_children():
+            ordini_treeview.delete(item)
+        update_bill(ordini_treeview, bill, bill_formatted_text)
 
 def max_4_chars_and_only_digits(string):
     return string.isdigit() and max_4_chars(string)
@@ -171,7 +172,7 @@ def draw_cassa(notebook, profile):
                 #    colore = 'black'
                 button = ttk.Button(frame_buttons, text=articolo['nome_breve'],
                                     command=functools.partial(insert_order, ordini_treeview, articolo, item_listino['id'], bill, bill_formatted_text))
-                button.grid(row=i // 6, column=i % 6, padx=5, pady=5)
+                button.grid(row=i // 6, column=i % 6, padx=5, pady=5, sticky='w')
             canvas.update_idletasks()
             canvas.configure(scrollregion=canvas.bbox("all"))
     # gestisco bill_frame
@@ -184,7 +185,7 @@ def draw_cassa(notebook, profile):
     bill_label.pack(side='left')
     update_bill(ordini_treeview, bill, bill_formatted_text)
 
-    def prepara_salvataggio(ordini_treeview, profile_id):
+    def prepara_salvataggio(ordini_treeview, profile_id, bill, bill_formatted_text):
         valori_ordine = (
             ('id_profilo', profile_id),
             ('nome_cliente', str(cliente_name.get())),
@@ -196,8 +197,8 @@ def draw_cassa(notebook, profile):
             ('omaggio',str(omaggio_value.get())),
             ('servizio', str(servizio_value.get()))
         )
-        salva(ordini_treeview, valori_ordine)
-    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, ordini_treeview, profile['id']))
+        salva(ordini_treeview, valori_ordine, bill, bill_formatted_text)
+    salva_tutto = ttk.Button(bill_frame, text="Salva", command=functools.partial(prepara_salvataggio, ordini_treeview, profile['id'], bill, bill_formatted_text))
     salva_tutto.pack(side='bottom', pady=(0, 60))
 
     # gestisco options_frame

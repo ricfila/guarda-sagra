@@ -81,6 +81,8 @@ def draw_articoli(notebook, profile):
     nuovo_articolo_nome_breve_entry = ttk.Entry(nuovo_articolo_frame, textvariable=nuovo_articolo_nome_breve)
     nuovo_articolo_nome_breve_entry.pack(side='left', padx=10, pady=10)
 
+
+
     nuovo_articolo_tipologia = tk.StringVar()
     nuovo_articolo_tipologia_combobox = ttk.Combobox(nuovo_articolo_frame, textvariable=nuovo_articolo_tipologia)
     nuovo_articolo_tipologia_combobox['state'] = 'readonly'

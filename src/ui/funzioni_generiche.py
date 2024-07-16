@@ -35,8 +35,8 @@ def api_post(query_url, data_to_send):
     headers = {'Content-Type': 'application/json'}
     response = requests.post(request_url, data=json_data, headers=headers)
 
-    if response.status_code == 200:
-        return response.json()
+    if response.status_code == 201:
+        return response.status_code
     else:
         print(f"Errore api_post: {response.status_code} - {response.text}")
 
