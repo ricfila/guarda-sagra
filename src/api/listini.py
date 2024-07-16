@@ -42,6 +42,7 @@ def create_listino():
     query = "INSERT INTO listini (nome) VALUES (%s) RETURNING id;"
     try:
         cur.execute(query, (content['nome'],))
+        get_connection().commit()
         id_listino = cur.fetchone()[0]
         return get_listino(id_listino), 201
     except Exception as e:
@@ -60,6 +61,7 @@ def update_listino(id_listino):
     query = "UPDATE listini SET nome = %s WHERE id = %s;"
     try:
         cur.execute(query, (content['nome'], id_listino))
+        get_connection().commit()
         return get_listino(id_listino)
     except Exception as e:
         print(e)
@@ -75,6 +77,7 @@ def delete_listino(id_listino):
     cur = get_connection().cursor()
     try:
         cur.execute("DELETE FROM listini WHERE id = %s;", (id_listino,))
+        get_connection().commit()
         return jsonify(listino)
     except Exception as e:
         print(e)

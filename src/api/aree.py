@@ -24,6 +24,7 @@ def create_area():
     query = "INSERT INTO aree (nome, coperto, asporto) VALUES (%s, %s, %s); RETURNING id;"
     try:
         cur.execute(query, (content['nome'], content['coperto'], content['asporto']))
+        get_connection().commit()
         id_area = cur.fetchone()[0]
         return get_area(id_area), 201
     except Exception as e:
@@ -42,6 +43,7 @@ def update_area(id_area):
     query = "UPDATE aree SET nome = %s, coperto = %s, asporto = %s WHERE id = %s;"
     try:
         cur.execute(query, (content['nome'], content['coperto'], content['asporto']), id_area)
+        get_connection().commit()
         return get_area(id_area)
     except Exception as e:
         print(e)
@@ -57,6 +59,7 @@ def delete_area(id_area):
     cur = get_connection().cursor()
     try:
         cur.execute("DELETE FROM aree WHERE id = %s;", (id_area,))
+        get_connection().commit()
         return jsonify(area)
     except Exception as e:
         print(e)

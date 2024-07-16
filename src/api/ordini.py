@@ -84,6 +84,7 @@ def delete_ordine(id_ordine):
     cur = get_connection().cursor()
     try:
         cur.execute("DELETE FROM ordini WHERE id = %s;", (id_ordine,))
+        get_connection().commit()
         return jsonify(ordine)
     except Exception as e:
         print(e)
