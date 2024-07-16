@@ -3,6 +3,7 @@ import psycopg2
 import threading
 from config import configs, init
 from flask import jsonify
+import json
 import os
 
 # Usa un oggetto threading.local per mantenere una connessione per ogni thread
@@ -71,11 +72,28 @@ def sqlite_enabled():
     return cf == "true" or cf == "True"
 
 
-def jason(cur):
-    col_names = [desc[0] for desc in cur.description]
-    return jsonify([dict(zip(col_names, row)) for row in cur.fetchall()])
+def jason_cur(cur):
+    cols = col_names(cur)
+    return jason(cols, cur.fetchall())
 
+def single_jason_cur(cur):
+    cols = col_names(cur)
+    return single_jason(cols, cur.fetchone())
 
-def single_jason(cur):
-    col_names = [desc[0] for desc in cur.description]
-    return jsonify(dict(zip(col_names, cur.fetchone())))
+def jason(cols, rows):
+    return jsonify([dict(zip(cols, row)) for row in rows])
+
+def single_jason(cols, row):
+    return jsonify(dict_res(cols, row))
+
+def col_names(cur):
+    return [desc[0] for desc in cur.description]
+
+def dict_res(col, row):
+    return dict(zip(col, row))
+
+def exists_element(table, id_element):
+    cur = get_connection().cursor()
+    cur.execute("SELECT * FROM {} WHERE id = %s".format(table), (id_element,))
+    exists = cur.rowcount == 1
+    return exists, (dict_res(col_names(cur), cur.fetchone()) if exists else None)
