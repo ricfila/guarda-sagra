@@ -47,18 +47,18 @@ def api_put(query_url, data_to_send):
     headers = {'Content-Type': 'application/json'}
     response = requests.put(request_url, data=json_data, headers=headers)
 
-    if response.status_code == 200: #TODO CERCA DI CAPIRE CODICE DI ACCETTAZIONE
+    if response.status_code == 200:
         return response.status_code
     else:
         print(f"Errore api_put: {response.status_code} - {response.text}")
 
 
 def api_delete(query_url):
-    request_url = api_url() + query_url + str(id)
+    request_url = api_url() + query_url
 
     response = requests.delete(request_url)
 
-    if response.status_code == 200: #TODO CERCA DI CAPIRE CODICE DI ACCETTAZIONE
+    if response.status_code == 200:
         return response.json()
     else:
         print(f"Errore api_delete: {response.status_code} - {response.text}")
@@ -80,16 +80,16 @@ def on_treeview_select(event, treeview_name, treeview, bill=None, bill_formatted
         elif treeview_name == 'tipologie_treeview':
             if nome_colonna == 'rimuovi':
                 on_select_rimuovi(treeview, treeview_name, id_riga)
-            elif nome_colonna == 'nome':
-                on_select_modifica(treeview, 'tipologie_treeview', id_riga, indice_colonna, nome_colonna)
             elif nome_colonna == 'sfondo':
-                #on_select_colore(treeview, id_riga, nome_colonna)
-                pass
+                on_select_colore(treeview, id_riga, nome_colonna)
+            else:
+                on_select_modifica(treeview, 'tipologie_treeview', id_riga, indice_colonna, nome_colonna)
+
 
         elif treeview_name == 'articoli_treeview':
             if nome_colonna == 'rimuovi':
                 on_select_rimuovi(treeview, treeview_name, id_riga)
-            elif nome_colonna == 'nome' or nome_colonna == 'nome_breve' or nome_colonna == 'prezzo':
+            else:
                 on_select_modifica(treeview, 'articoli_treeview', id_riga, indice_colonna, nome_colonna)
 
         elif treeview_name == 'articoli_per_listino':
@@ -168,16 +168,22 @@ def on_select_colore(treeview, id_riga, nome_colonna):
     colore = tk.StringVar()
     scelta_colore(("Scelta dello sfondo per la tipologia "+ treeview.item(id_riga, 'values')[1])[1], colore)
     treeview.set(id_riga, nome_colonna, colore.get())
-    # TODO chiamata a API per modifica colore
+
+    data_to_send = {}
+    for column in treeview['columns'][1:]:
+        data_to_send[column] = treeview.item(id_riga, 'values')[treeview['columns'].index(column)]
+    api_put('/tipologie/' + str(treeview.item(id_riga, 'values')[1]), data_to_send)
     refresh_colori(treeview)
 
 def refresh_colori(treeview):
     for riga in treeview.get_children():
-        colore = treeview.item(riga, 'values')[2]
+        colore = treeview.item(riga, 'values')[4] # item(..)[4] è lo sfondo
         if colore != 'None':
-            nome_tag = treeview.item(riga, 'values')[1].replace(' ', '_') + '_colore'
+            nome_tag = treeview.item(riga, 'values')[2].replace(' ', '_') + '_colore' # item(..)[2] è il nome
             treeview.tag_configure(nome_tag, background=colore)
             treeview.item(riga, tags=nome_tag)
+        treeview.selection_remove(riga) # Rimuove la "selezione blu" per visualizzare subito il colore
+
 
 def scelta_colore(intestazione, colore):
     colore_temp =colorchooser.askcolor(title = intestazione)[1]

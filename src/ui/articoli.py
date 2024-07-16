@@ -154,8 +154,25 @@ def draw_articoli(notebook, profile):
         )
         add_articolo(articoli_treeview, valori_articolo)
 
-    aggiungi_articolo = ttk.Button(nuovo_articolo_frame, text="Aggiungi articolo", command=lambda: prepara_salvataggio(articoli_treeview))
-    aggiungi_articolo.pack(side='left', padx=10, pady=10)
+    def pulisci_campi():
+        nuovo_articolo_nome.set('')
+        nuovo_articolo_nome_breve.set('')
+        nuovo_articolo_prezzo.set('')
+        copia_cliente.set(False)
+        copia_cucina.set(False)
+        copia_bar.set(False)
+        copia_pizzeria.set(False)
+        copia_rosticceria.set(False)
+
+
+    aggiungi_articolo_pulsante = ttk.Button(nuovo_articolo_frame, text="Aggiungi articolo", command=lambda: prepara_salvataggio(articoli_treeview))
+    aggiungi_articolo_pulsante.pack(side='left', padx=10, pady=10)
+
+    pulisci_campi_pulsante = ttk.Button(nuovo_articolo_frame, text="Pulisci campi", command=lambda: pulisci_campi())
+    pulisci_campi_pulsante.pack(side='left', padx=10, pady=10)
+
+    aggiorna_articoli_pulsante = ttk.Button(nuovo_articolo_frame, text="Aggiorna articoli", command=lambda: refresh_treeview(articoli_treeview, 'articoli_treeview', '/articoli'))
+    aggiorna_articoli_pulsante.pack(side='left', padx=10, pady=10)
 
 
     articoli_treeview = ttk.Treeview(articoli_view, columns=('rimuovi', 'id', 'nome', 'nome_breve', 'prezzo', 'copia_cliente', 'copia_cucina', 'copia_bar', 'copia_pizzeria', 'copia_rosticceria'),
