@@ -45,9 +45,9 @@ def api_put(query_url, data_to_send):
     json_data = json.dumps(data_to_send)
 
     headers = {'Content-Type': 'application/json'}
-    response = requests.post(request_url, data=json_data, headers=headers)
+    response = requests.put(request_url, data=json_data, headers=headers)
 
-    if response.status_code == 201: #TODO CERCA DI CAPIRE CODICE DI ACCETTAZIONE
+    if response.status_code == 200: #TODO CERCA DI CAPIRE CODICE DI ACCETTAZIONE
         return response.status_code
     else:
         print(f"Errore api_put: {response.status_code} - {response.text}")
