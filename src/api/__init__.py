@@ -12,6 +12,7 @@ def create_app():
     from . import listini
     from . import ordini
     from . import profili
+    from . import statistiche
     from . import tipologie
 
     # Registra le route
@@ -20,6 +21,7 @@ def create_app():
     app.register_blueprint(listini.bp)
     app.register_blueprint(ordini.bp)
     app.register_blueprint(profili.bp)
+    app.register_blueprint(statistiche.bp)
     app.register_blueprint(tipologie.bp)
 
     return app
