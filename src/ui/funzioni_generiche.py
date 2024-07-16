@@ -39,6 +39,29 @@ def api_post(query_url, data_to_send):
         return response.status_code
     else:
         print(f"Errore api_post: {response.status_code} - {response.text}")
+def api_put(query_url, data_to_send):
+    request_url = api_url() + query_url
+
+    json_data = json.dumps(data_to_send)
+
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(request_url, data=json_data, headers=headers)
+
+    if response.status_code == 201: #TODO CERCA DI CAPIRE CODICE DI ACCETTAZIONE
+        return response.status_code
+    else:
+        print(f"Errore api_put: {response.status_code} - {response.text}")
+
+
+def api_delete(query_url):
+    request_url = api_url() + query_url + str(id)
+
+    response = requests.delete(request_url)
+
+    if response.status_code == 200: #TODO CERCA DI CAPIRE CODICE DI ACCETTAZIONE
+        return response.json()
+    else:
+        print(f"Errore api_delete: {response.status_code} - {response.text}")
 
 
 def on_treeview_select(event, treeview_name, treeview, bill=None, bill_formatted_text=None):
@@ -50,7 +73,7 @@ def on_treeview_select(event, treeview_name, treeview, bill=None, bill_formatted
 
         if treeview_name == 'ordini_treeview':
             if nome_colonna == 'note':
-                on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna)
+                on_select_modifica(treeview, 'ordini_treeview', id_riga, indice_colonna, nome_colonna)
             if nome_colonna == 'rimuovi':
                 on_select_rimuovi(treeview, treeview_name, id_riga, bill, bill_formatted_text)
 
@@ -58,7 +81,7 @@ def on_treeview_select(event, treeview_name, treeview, bill=None, bill_formatted
             if nome_colonna == 'rimuovi':
                 on_select_rimuovi(treeview, treeview_name, id_riga)
             elif nome_colonna == 'nome':
-                on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna)
+                on_select_modifica(treeview, 'tipologie_treeview', id_riga, indice_colonna, nome_colonna)
             elif nome_colonna == 'sfondo':
                 #on_select_colore(treeview, id_riga, nome_colonna)
                 pass
@@ -66,8 +89,8 @@ def on_treeview_select(event, treeview_name, treeview, bill=None, bill_formatted
         elif treeview_name == 'articoli_treeview':
             if nome_colonna == 'rimuovi':
                 on_select_rimuovi(treeview, treeview_name, id_riga)
-            elif nome_colonna == 'nome':
-                on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna)
+            elif nome_colonna == 'nome' or nome_colonna == 'nome_breve' or nome_colonna == 'prezzo':
+                on_select_modifica(treeview, 'articoli_treeview', id_riga, indice_colonna, nome_colonna)
 
         elif treeview_name == 'articoli_per_listino':
             if nome_colonna == 'aggiungi_rimuovi':
@@ -88,10 +111,10 @@ def on_select_rimuovi(treeview, treeview_name, id_riga, bill=None, bill_formatte
         reply = messagebox.askquestion("Elimina riga",
                                        f"Vuoi eliminare la riga " + treeview.item(id_riga, 'values')[1])
         if reply == 'yes':
-            # api_delete(treeview.item(id_riga, 'values')['id'])  #TODO DELETE REQUEST API (api_delete è un nome temporaneo, devo passare il valore di id?)
+            api_delete('/articoli/' + str(treeview.item(id_riga, 'values')[1]))
             treeview.delete(id_riga)
 
-def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna):
+def on_select_modifica(treeview, nome_treeview, id_riga, indice_colonna, nome_colonna):
     # click sinistro per modificare nome. "invio" o click fuori per modificare, "esc" per annullare
     bbox = treeview.bbox(id_riga, nome_colonna)
 
@@ -101,14 +124,18 @@ def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna):
         entry_per_modifica = ttk.Entry(treeview, width=width)
         entry_per_modifica.insert(0, valori_riga_attuali)
 
-        def save_edit(event):
+        def save_edit(event, treeview, nome_treeview, id_riga):
             new_value = entry_per_modifica.get()
-            #TODO put_api per modifica nome
             treeview.set(id_riga, nome_colonna, new_value)
+            if nome_treeview != 'ordini_treeview':
+                data_to_send = {}
+                for column in treeview['columns'][1:]:
+                    data_to_send[column] = treeview.item(id_riga, 'values')[treeview['columns'].index(column)]
+                api_put('/articoli/' + str(treeview.item(id_riga, 'values')[1]), data_to_send)
             entry_per_modifica.destroy()
 
-        entry_per_modifica.bind("<Return>", save_edit) # invio
-        entry_per_modifica.bind("<FocusOut>", save_edit)  # se si vuole eliminare la modifica clickando al di fuori, modifica in cancel_edit
+        entry_per_modifica.bind("<Return>", lambda event, tv=treeview: save_edit(event, treeview, nome_treeview, id_riga)) # invio
+        entry_per_modifica.bind("<FocusOut>", lambda event, tv=treeview: save_edit(event, treeview, nome_treeview, id_riga))  # se si vuole eliminare la modifica clickando al di fuori, modifica in cancel_edit
 
         def cancel_edit(event):
             entry_per_modifica.destroy()
@@ -123,7 +150,7 @@ def on_select_modifica(treeview, id_riga, indice_colonna, nome_colonna):
             entry_per_modifica.focus_set()
         entry_per_modifica.after_idle(set_focus)
 
-def refresh_treeview(treeview, api_get_string):
+def refresh_treeview(treeview, nome_treeview, api_get_string):
     for riga in treeview.get_children():
         treeview.delete(riga)
 
@@ -135,7 +162,8 @@ def refresh_treeview(treeview, api_get_string):
                 valori.append(valore[colonna])
             treeview.insert('', 'end',
                             values=valori)
-    refresh_colori(treeview)
+    if nome_treeview == 'tipologia_treeview':
+        refresh_colori(treeview)
 def on_select_colore(treeview, id_riga, nome_colonna):
     colore = tk.StringVar()
     scelta_colore(("Scelta dello sfondo per la tipologia "+ treeview.item(id_riga, 'values')[1])[1], colore)
