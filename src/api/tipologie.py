@@ -64,6 +64,24 @@ def update_tipologia(id_tipologia, col, value):
         return "Errore durante l'aggiornamento della tipologia", 500
 
 
+@bp.put('/tipologie/<int:id_tipologia>')
+def update_tipologia(id_tipologia):
+    exists, tipologia = exists_element('tipologie', id_tipologia)
+    if not exists:
+        return "Tipologia non trovata", 404
+
+    cur = get_connection().cursor()
+    content = request.get_json()
+    query = "UPDATE tipologie SET nome = %s, posizione = %s, sfondo = %s, visibile = %s WHERE id = %s;"
+    try:
+        cur.execute(query, (content['nome'], content['posizione'], content['sfondo'], content['visibile'], id_tipologia))
+        get_connection().commit()
+        return get_tipologia(id_tipologia)
+    except Exception as e:
+        print(e)
+        return "Errore durante l'aggiornamento della tipologia", 500
+
+
 @bp.delete('/tipologie/<int:id_tipologia>')
 def delete_tipologia(id_tipologia):
     exists, tipologia = exists_element('tipologie', id_tipologia)

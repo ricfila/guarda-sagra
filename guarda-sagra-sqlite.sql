@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS `articoli_ingredienti` (
   `posizione` int,
   `visibile` boolean,
   PRIMARY KEY (`articolo`, `ingrediente`),
-  FOREIGN KEY (`articolo`) REFERENCES `articoli` (`id`),
-  FOREIGN KEY (`ingrediente`) REFERENCES `ingredienti` (`id`)
+  FOREIGN KEY (`articolo`) REFERENCES `articoli` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`ingrediente`) REFERENCES `ingredienti` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `listini` (
   `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `articoli_listini` (
   `sfondo` varchar(16) DEFAULT NULL,
   `visibile` boolean,
   PRIMARY KEY (`articolo`, `listino`),
-  FOREIGN KEY (`articolo`) REFERENCES `articoli` (`id`),
+  FOREIGN KEY (`articolo`) REFERENCES `articoli` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`listino`) REFERENCES `listini` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`tipologia`) REFERENCES `tipologie` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `profili` (
   `area` int DEFAULT (NULL),
   `password` varchar(128),
   `arrotonda` numeric(4, 2) DEFAULT (NULL),
-  FOREIGN KEY (`area`) REFERENCES `aree` (`id`)
+  FOREIGN KEY (`area`) REFERENCES `aree` (`id`) ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `casse_listini` (
   `cassa` int NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `casse_listini` (
   `data_inizio` date,
   `data_fine` date,
   PRIMARY KEY (`cassa`, `listino`),
-  FOREIGN KEY (`cassa`) REFERENCES `profili` (`id`),
+  FOREIGN KEY (`cassa`) REFERENCES `profili` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`listino`) REFERENCES `listini` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `tipi_pagamento` (
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `ordini` (
   `menu_omaggio` boolean,
   `per_operatori` boolean,
   `preordine` boolean,
-  FOREIGN KEY (`cassa`) REFERENCES `profili` (`id`),
+  FOREIGN KEY (`cassa`) REFERENCES `profili` (`id`) ON UPDATE CASCADE,
   FOREIGN KEY (`tipo_pagamento`) REFERENCES `tipi_pagamento` (`id`) ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `stati` (
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `passaggi_stato` (
   `agente` varchar(32),
   PRIMARY KEY (`ordine`, `stato`),
   FOREIGN KEY (`ordine`) REFERENCES `ordini` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (`stato`) REFERENCES `stati` (`id`)
+  FOREIGN KEY (`stato`) REFERENCES `stati` (`id`) ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `righe_articoli` (
   `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -123,15 +123,15 @@ CREATE TABLE IF NOT EXISTS `righe_articoli` (
   `quantita` int,
   `note` varchar(128),
   FOREIGN KEY (`ordine`) REFERENCES `ordini` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (`articolo`) REFERENCES `articoli` (`id`)
+  FOREIGN KEY (`articolo`) REFERENCES `articoli` (`id`) ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `righe_ingredienti` (
   `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
   `riga_articolo` int NOT NULL,
   `ingrediente` int NOT NULL,
   `quantita` int,
-  FOREIGN KEY (`riga_articolo`) REFERENCES `righe_articoli` (`id`),
-  FOREIGN KEY (`ingrediente`) REFERENCES `ingredienti` (`id`)
+  FOREIGN KEY (`riga_articolo`) REFERENCES `righe_articoli` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`ingrediente`) REFERENCES `ingredienti` (`id`) ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `sconti` (
   `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS `righe_sconti` (
   `sconto` int NOT NULL,
   `numero_buono` int,
   FOREIGN KEY (`ordine`) REFERENCES `ordini` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (`sconto`) REFERENCES `sconti` (`id`)
+  FOREIGN KEY (`sconto`) REFERENCES `sconti` (`id`) ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `sconti_listini` (
   `sconto` int NOT NULL,
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS `sconti_listini` (
   `posizione` int,
   `visibile` boolean,
   PRIMARY KEY (`sconto`, `listino`),
-  FOREIGN KEY (`sconto`) REFERENCES `sconti` (`id`),
+  FOREIGN KEY (`sconto`) REFERENCES `sconti` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`listino`) REFERENCES `listini` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS `scorte` (
@@ -165,5 +165,5 @@ CREATE TABLE IF NOT EXISTS `scorte` (
   `scorta` numeric(10, 2),
   `data_ora` datetime,
   `attuale` boolean,
-  FOREIGN KEY (`ingrediente`) REFERENCES `ingredienti` (`id`)
+  FOREIGN KEY (`ingrediente`) REFERENCES `ingredienti` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
