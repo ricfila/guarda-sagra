@@ -4,14 +4,14 @@ from .funzioni_generiche import api_get, api_post, api_delete, crea_checkbox, on
 import functools
 
 
-
+'''
 def on_select_inverti(treeview, id_riga, indice_colonna, nome_colonna):
     pass
     #if valore 0 == +
     #    aggiungi associazione a db, colora di verde, scrivi -
     #if valore 0 == -
     #    rimuovi da db, setta colore base, scrivi +
-
+'''
 def add_to_treeview(treeview, nome_treeview, valori):
     data_to_send = {}
     if nome_treeview != 'listini_treeview':
@@ -38,6 +38,7 @@ def add_tipologia(tipologie_treeview, valori_tipologia):  #TODO parametrizza con
         pass
     refresh_treeview(tipologie_treeview, 'tipologie_treeview', '/tipologie')
 
+'''
 def get_tipologie(combobox):  #TODO parametrizza con (nome_treeview.split('_'))[0]
     tipologie = []
     for item in api_get('/tipologie'):
@@ -58,7 +59,7 @@ def get_profili(combobox):  #TODO parametrizza con (nome_treeview.split('_'))[0]
         profilo = str(item['id']) + ' ' + item['nome']
         profili.append(profilo)
     combobox['values'] = tuple(profili)
-
+'''
 def draw_articoli(notebook, profile):
     tab = ttk.Frame(notebook)
     notebook.add(tab, text="Articoli")
@@ -75,7 +76,7 @@ def draw_articoli(notebook, profile):
     articoli_page = add_notebook_frame(articoli_notebook, 'Articoli')
     tipologie_page = add_notebook_frame(articoli_notebook, 'Tipologie')
     listini_page = add_notebook_frame(articoli_notebook, 'Listini')
-    articoli_listini_page = add_notebook_frame(articoli_notebook, 'Collega articoli a listini')
+    #articoli_listini_page = add_notebook_frame(articoli_notebook, 'Collega articoli a listini')
 
     # articoli_page
 
@@ -318,7 +319,8 @@ def draw_articoli(notebook, profile):
     aggiorna_listini_pulsante.pack(side='left', padx=(100,10), pady=10)
 
 
-
+    #TODO articoli_listini
+    '''
     # articoli_listini_page
 
     articoli_listini_view = ttk.Frame(articoli_listini_page)
@@ -340,7 +342,7 @@ def draw_articoli(notebook, profile):
     aggiorna_combobox_listino.pack(side='left', padx=10, pady=10)
 
     # TODO da mettere in tab profili/ sottotab listini
-    ''' 
+    
     cassa_per_listino = tk.StringVar()
     collega_cassa_a_listino_combobox = ttk.Combobox(scegli_listino_frame, textvariable=cassa_per_listino)
     collega_cassa_a_listino_combobox['state'] = 'readonly'
@@ -349,7 +351,7 @@ def draw_articoli(notebook, profile):
     aggiorna_combobox_cassa_listino = ttk.Button(scegli_listino_frame, text="Aggiorna casse",
                                            command=lambda: get_profili(collega_cassa_a_listino_combobox))
     aggiorna_combobox_cassa_listino.pack(side='left', padx=10, pady=10)
-    '''
+    # TODO FINE da mettere in tab profili/ sottotab listini
 
     articoli_per_listino_treeview = ttk.Treeview(articoli_listini_view, columns=('aggiungi_rimuovi', 'id', 'nome', 'nome_breve', 'prezzo', 'sfondo', 'tipologia', 'nome_tipologia', 'sfondo_tipologia'),
                           show='headings')
@@ -371,3 +373,4 @@ def draw_articoli(notebook, profile):
     articoli_per_listino_treeview.pack(fill='both', expand=True)
 
     articoli_per_listino_treeview.bind("<ButtonRelease-1>", lambda event, apl=articoli_per_listino_treeview: on_treeview_select(event, 'articoli_per_listino', apl))
+    '''

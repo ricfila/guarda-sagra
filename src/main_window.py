@@ -1,11 +1,6 @@
 import tkinter as tk
-from tkinter import *
 from tkinter import ttk
-from ttkthemes import ThemedTk
-from tkinter import messagebox
-import sys  # used to end the program
-from . import config
-from .ui import *
+from src.ui import cassa, articoli, profili, report
 class Main_window(tk.Tk):
     def __init__(self, profile, logout_value):
         super().__init__()

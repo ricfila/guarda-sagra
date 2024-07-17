@@ -1,13 +1,9 @@
 import tkinter as tk
-from tkinter import *
 from tkinter import ttk, messagebox
-from .ui.funzioni_generiche import api_get
-from . import main_window
+from src.ui.funzioni_generiche import api_get
+from src.main_window import Main_window
 
 def open_profiles_window(title, size):
-    global logout_value
-    logout_value = False
-
     profiles_window = tk.Tk()
     profiles_window.title(title)
     profiles_window.geometry(f'{size[0]}x{size[1]}')
@@ -43,12 +39,12 @@ def profile_selection(profiles_window, profilo_scelto):
     logout_value.set(False)
 
     profiles_window.destroy()
-    main_app = main_window.Main_window(profilo_scelto, logout_value)
+    main_app = Main_window(profilo_scelto, logout_value)
     main_app.mainloop()
     if logout_value.get() == True:
         open_profiles_window('Guarda Sagra', (400, 300))
 
-
+'''
 def open_login_window(profiles_window, profile):
     login_window = tk.Toplevel()
     login_window.title('Inserire la password')
@@ -78,3 +74,4 @@ def password_confirm(profiles_window, profile, password):
     else:
         messagebox.showerror('Errore', 'Password errata.')
 
+'''
