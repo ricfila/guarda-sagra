@@ -55,4 +55,4 @@ jobs:
         context: .
         file: ./dockerfile
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/guarda-sagra:latest
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/guarda-sagra:2024

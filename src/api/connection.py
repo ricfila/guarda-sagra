@@ -56,7 +56,7 @@ def create_connection():
     # Se non è presente un'area, ne inserisce una di default
     cur.execute("SELECT COUNT(*) FROM aree;")
     if cur.fetchone()[0] == 0:
-        cur.execute("INSERT INTO aree (nome, coperto, asporto) VALUES ('Default, 0, 0');")
+        cur.execute("INSERT INTO aree (nome, coperto, asporto) VALUES ('Default', 0, 0);")
         conn.commit()
 
     return conn, cur
