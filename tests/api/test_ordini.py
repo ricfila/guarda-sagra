@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 
 from flask import json
 
-from api.ordini import format_ordine
+from src.api.ordini import format_ordine
 from src.api import create_app
 from tests import definisci_mock
 
