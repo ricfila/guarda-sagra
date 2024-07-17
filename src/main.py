@@ -9,18 +9,25 @@ from src import profiles_logic  # contains the profile logic
 from src import config
 import threading
 from src.api import init_thread
+import os
 
 def main():
-    profiles_logic.open_profiles_window('Guarda Sagra', (400, 300))
-
-if __name__ == "__main__":
     # Inizializza le configurazioni
     config.init()
 
-    # Avvio thread demone per chiamate api
-    thread = threading.Thread(target=init_thread, daemon=True)
-    thread.start()
+    if os.environ.get('DISPLAY', '') == '' and os.environ.get('PYCHARM_DISPLAY_PORT', '') == '':
+        print('Impossibile avviare l\'interfaccia grafica')
 
+        init_thread()
+    else:
+        # Avvio thread demone per chiamate api
+        thread = threading.Thread(target=init_thread, daemon=True)
+        thread.start()
+
+        profiles_logic.open_profiles_window('Guarda Sagra', (400, 300))
+
+
+if __name__ == "__main__":
     main()
 
 '''
