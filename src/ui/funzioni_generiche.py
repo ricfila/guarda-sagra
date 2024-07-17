@@ -170,30 +170,27 @@ def refresh_treeview(treeview, nome_treeview, api_get_string, api_get_string2 = 
             valori = ['-']
             for colonna in nomi_colonne[1:]:
                 valori.append(valore[colonna])
-            treeview.insert('', 'end',
-                            values=valori)
-
-
+            treeview.insert('', 'end', values=valori)
+    if nome_treeview == 'tipologie_treeview':
+        refresh_colori(treeview)
+    #TODO articoli_per listino
+    '''
     if nome_treeview == 'articoli_per_listino_treeview':
         #nomi_colonne: 'aggiungi_rimuovi', 'id', 'nome', 'nome_breve', 'prezzo', 'sfondo',
         # 'tipologia', 'nome_tipologia', 'sfondo_tipologia'
+
         valori_articoli = api_get(api_get_string)
+        #[{'copia_bar': False, 'copia_cliente': True, 'copia_cucina': True, 'copia_pizzeria': False, 'copia_rosticceria': False, 'id': 34, 'nome': 'aaa', 'nome_breve': 'aaa', 'prezzo': '123.00'}]
+
         valori_articoli_listino = api_get(api_get_string2)
+        #[{'id': 1, 'nome': 'SPAGHETTI AL POMODORO', 'nome_breve': 'SPAGHETTI POMODORO', 'prezzo': '5.50', 'sfondo': None, 'tipologia': 1}]
+
         valori_articoli_listino_tipologia = api_get(api_get_string3)
-
-        for articolo in valori_articoli:
-            pass
-
-        for valore in api_get(api_get_string):
-            valori = ['-']
-            for colonna in nomi_colonne[1:]:
-                valori.append(valore[colonna])
-            treeview.insert('', 'end',
-                            values=valori)
+        #[{'id': 1, 'nome': 'SPAGHETTI AL POMODORO', 'nome_breve': 'SPAGHETTI POMODORO', 'nome_tipologia': 'Primi', 'prezzo': '5.50', 'sfondo': None, 'sfondo_tipologia': None, 'tipologia': 1}]
+        '''
 
 
-    if nome_treeview == 'tipologie_treeview':
-        refresh_colori(treeview)
+
 def on_select_colore(treeview, id_riga, nome_colonna):
     colore = tk.StringVar()
     scelta_colore(("Scelta dello sfondo per la tipologia "+ treeview.item(id_riga, 'values')[1])[1], colore)

@@ -1,11 +1,4 @@
-import tkinter as tk
-from tkinter import *
-from tkinter import ttk
-from ttkthemes import ThemedTk
-from tkinter import messagebox
-import sys  # used to end the program
-from src import profiles_logic  # contains the profile logic
-
+from src import profiles_logic
 from src import config
 import threading
 from src.api import init_thread

@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, colorchooser
+from tkinter import ttk
 import functools
 from .funzioni_generiche import api_get, api_post, crea_checkbox, on_treeview_select, update_bill
 
