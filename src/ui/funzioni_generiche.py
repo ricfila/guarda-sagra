@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox, colorchooser
 import functools
 import requests
 import json
-from config import configs
+from src.config import configs
 
 def replace_single_quotes(input_string):
     return input_string.replace("'", "''")

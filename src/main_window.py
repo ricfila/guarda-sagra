@@ -4,8 +4,8 @@ from tkinter import ttk
 from ttkthemes import ThemedTk
 from tkinter import messagebox
 import sys  # used to end the program
-import config
-from ui import *
+from . import config
+from .ui import *
 class Main_window(tk.Tk):
     def __init__(self, profile, logout_value):
         super().__init__()

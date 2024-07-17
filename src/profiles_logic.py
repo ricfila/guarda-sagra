@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk, messagebox
-from ui.funzioni_generiche import api_get
-import main_window
+from .ui.funzioni_generiche import api_get
+from . import main_window
 
 def open_profiles_window(title, size):
     global logout_value

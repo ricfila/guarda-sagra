@@ -1,7 +1,7 @@
 import sqlite3
 import psycopg2
 import threading
-from config import configs, init
+from src.config import configs, init
 from flask import jsonify
 import json
 import os
