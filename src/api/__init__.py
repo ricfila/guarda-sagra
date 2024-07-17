@@ -27,7 +27,7 @@ def create_app():
     return app
 
 
-def init_thread():
+def init_thread(host="localhost", port=5000):
     app = create_app()
     create_connection()
-    app.run("localhost", port=5000, debug=False, threaded=True)
+    app.run(host=host, port=port, debug=False, threaded=True)

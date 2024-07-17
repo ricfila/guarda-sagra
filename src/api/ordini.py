@@ -40,7 +40,7 @@ def create_ordine():
 
     try:
         # Inserimento ordine
-        res = cur.execute(
+        cur.execute(
             "INSERT INTO ordini (progressivo, data, ora, cliente, coperti, tavolo, totale, note, cassa, tipo_pagamento, menu_omaggio, per_operatori, preordine) VALUES (%s, CURRENT_DATE, CURRENT_TIME, %s, %s, %s, 0, %s, %s, %s, %s, %s, %s) RETURNING id;",
             (None, content['nome_cliente'],
              (None if content['asporto'] else (content['coperti'] if content['coperti'] != '' else 0)),

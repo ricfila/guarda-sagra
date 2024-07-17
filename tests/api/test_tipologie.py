@@ -66,6 +66,67 @@ class TestTipologie(unittest.TestCase):
             assert response.get_json()['id'] == self.ds[0][0]
             assert response.get_json()['nome'] == self.ds[0][1]
 
+    @patch('src.api.tipologie.get_connection')
+    @patch('src.api.tipologie.exists_element')
+    def test_update_tipologia(self, mock_exists_element, mock_get_connection):
+        mock_exists_element.return_value = (True, {'id': 1, 'nome': 'Tipologia1'})
+        mock_cursor = MagicMock()
+        mock_get_connection.return_value.cursor.return_value = mock_cursor
+        updated_tipologia = {
+            'nome': 'UpdatedTipologia',
+            'posizione': 1,
+            'sfondo': 'blue',
+            'visibile': True
+        }
+
+        with self.app.app_context():
+            response = self.client.put('/tipologie/1', json=updated_tipologia)
+            self.assertEqual(response.status_code, 200)
+            mock_cursor.execute.assert_called_with(
+                "UPDATE tipologie SET nome = %s, posizione = %s, sfondo = %s, visibile = %s WHERE id = %s;",
+                ('UpdatedTipologia', 1, 'blue', True, 1)
+            )
+            self.assertEqual(response.json['id'], 1)
+            self.assertEqual(response.json['nome'], 'Tipologia1')
+
+    @patch('src.api.tipologie.get_connection')
+    @patch('src.api.tipologie.exists_element')
+    def test_update_tipologia_not_found(self, mock_exists_element, mock_get_connection):
+        mock_exists_element.return_value = (False, None)
+        with self.app.app_context():
+            response = self.client.put('/tipologie/1', json={
+                'nome': 'UpdatedTipologia',
+                'posizione': 1,
+                'sfondo': 'blue',
+                'visibile': True
+            })
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.data.decode(), "Tipologia non trovata")
+
+    @patch('src.api.tipologie.get_connection')
+    @patch('src.api.tipologie.exists_element')
+    def test_delete_tipologia(self, mock_exists_element, mock_get_connection):
+        mock_exists_element.return_value = (True, {'id': 1, 'nome': 'Tipologia1'})
+        mock_cursor = MagicMock()
+        mock_get_connection.return_value.cursor.return_value = mock_cursor
+
+        with self.app.app_context():
+            response = self.client.delete('/tipologie/1')
+            self.assertEqual(response.status_code, 200)
+            mock_cursor.execute.assert_called_with("DELETE FROM tipologie WHERE id = %s", (1,))
+            self.assertEqual(response.json['id'], 1)
+            self.assertEqual(response.json['nome'], 'Tipologia1')
+
+
+    @patch('src.api.tipologie.get_connection')
+    @patch('src.api.tipologie.exists_element')
+    def test_delete_tipologia_not_found(self, mock_exists_element, mock_get_connection):
+        mock_exists_element.return_value = (False, None)
+        with self.app.app_context():
+            response = self.client.delete('/tipologie/1')
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.data.decode(), "Tipologia non trovata")
+
 
 if __name__ == '__main__':
     unittest.main()

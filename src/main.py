@@ -18,7 +18,7 @@ def main():
     if os.environ.get('DISPLAY', '') == '' and os.environ.get('PYCHARM_DISPLAY_PORT', '') == '':
         print('Impossibile avviare l\'interfaccia grafica')
 
-        init_thread()
+        init_thread(host="0.0.0.0")
     else:
         # Avvio thread demone per chiamate api
         thread = threading.Thread(target=init_thread, daemon=True)

@@ -32,7 +32,7 @@ def create_tipologia():
         print(e)
         return "Errore durante la creazione della tipologia", 500
 
-
+"""
 @bp.put('/tipologie/<int:id_tipologia>/nome')
 def update_nome_tipologia(id_tipologia):
     return update_tipologia(id_tipologia, 'nome', request.get_json()['nome'])
@@ -62,6 +62,7 @@ def update_tipologia(id_tipologia, col, value):
     except Exception as e:
         print(e)
         return "Errore durante l'aggiornamento della tipologia", 500
+"""
 
 
 @bp.put('/tipologie/<int:id_tipologia>')
