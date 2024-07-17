@@ -12,7 +12,7 @@ def salva(ordini_treeview, valori_ordine, bill, bill_formatted_text): #TODO Biso
     articles = []
     for item in ordini_treeview.get_children():
         item_data = {}
-        for column in ordini_treeview['columns']: #TODO se non funzia sostituisci con ('qta', 'note', 'id_listino', 'id_articolo')
+        for column in ordini_treeview['columns'][1:]: #TODO sostituisci casi del genere con questa
             item_data[column] = ordini_treeview.item(item, 'values')[ordini_treeview['columns'].index(column)]
         articles.append(item_data)
 

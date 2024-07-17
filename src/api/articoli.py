@@ -24,7 +24,7 @@ def get_articolo(id_articolo):
 def get_articoli_listino(listino):
     cur = get_connection().cursor()
     query = """
-        SELECT articoli.id, articoli.nome, articoli.nome_breve, articoli.prezzo, articoli_listini.sfondo, articoli_listini.tipologia, 
+        SELECT articoli.id, articoli.nome, articoli.nome_breve, articoli.prezzo, articoli_listini.sfondo, articoli_listini.tipologia
         FROM articoli_listini
         JOIN articoli ON articoli_listini.articolo = articoli.id
         JOIN tipologie ON articoli_listini.tipologia = tipologie.id

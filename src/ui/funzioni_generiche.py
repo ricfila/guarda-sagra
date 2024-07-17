@@ -82,20 +82,30 @@ def on_treeview_select(event, treeview_name, treeview, bill=None, bill_formatted
                 on_select_rimuovi(treeview, treeview_name, id_riga)
             elif nome_colonna == 'sfondo':
                 on_select_colore(treeview, id_riga, nome_colonna)
-            else:
+            elif nome_colonna != 'id':
                 on_select_modifica(treeview, 'tipologie_treeview', id_riga, indice_colonna, nome_colonna)
 
 
         elif treeview_name == 'articoli_treeview':
             if nome_colonna == 'rimuovi':
                 on_select_rimuovi(treeview, treeview_name, id_riga)
-            else:
+            elif nome_colonna != 'id':
                 on_select_modifica(treeview, 'articoli_treeview', id_riga, indice_colonna, nome_colonna)
+
+        elif treeview_name == 'listini_treeview':
+            if nome_colonna == 'rimuovi':
+                on_select_rimuovi(treeview, treeview_name, id_riga)
+            elif nome_colonna != 'id':
+                on_select_modifica(treeview, 'listini_treeview', id_riga, indice_colonna, nome_colonna)
+
 
         elif treeview_name == 'articoli_per_listino':
             if nome_colonna == 'aggiungi_rimuovi':
                 pass
                 #on_select_inverti(treeview, id_riga, indice_colonna, nome_colonna)
+            elif nome_colonna != 'id':
+                on_select_modifica(treeview, 'articoli_per_listino', id_riga, indice_colonna, nome_colonna)
+
 
 def on_select_rimuovi(treeview, treeview_name, id_riga, bill=None, bill_formatted_text=None):
     if treeview_name == ('ordini_treeview'):
@@ -111,7 +121,7 @@ def on_select_rimuovi(treeview, treeview_name, id_riga, bill=None, bill_formatte
         reply = messagebox.askquestion("Elimina riga",
                                        f"Vuoi eliminare la riga " + treeview.item(id_riga, 'values')[1])
         if reply == 'yes':
-            api_delete('/articoli/' + str(treeview.item(id_riga, 'values')[1]))
+            api_delete('/' + (treeview_name.split('_'))[0] + '/' + str(treeview.item(id_riga, 'values')[1]))
             treeview.delete(id_riga)
 
 def on_select_modifica(treeview, nome_treeview, id_riga, indice_colonna, nome_colonna):
@@ -131,7 +141,7 @@ def on_select_modifica(treeview, nome_treeview, id_riga, indice_colonna, nome_co
                 data_to_send = {}
                 for column in treeview['columns'][1:]:
                     data_to_send[column] = treeview.item(id_riga, 'values')[treeview['columns'].index(column)]
-                api_put('/articoli/' + str(treeview.item(id_riga, 'values')[1]), data_to_send)
+                api_put('/' + (nome_treeview.split('_'))[0] + '/' + str(treeview.item(id_riga, 'values')[1]), data_to_send)
             entry_per_modifica.destroy()
 
         entry_per_modifica.bind("<Return>", lambda event, tv=treeview: save_edit(event, treeview, nome_treeview, id_riga)) # invio
@@ -150,7 +160,7 @@ def on_select_modifica(treeview, nome_treeview, id_riga, indice_colonna, nome_co
             entry_per_modifica.focus_set()
         entry_per_modifica.after_idle(set_focus)
 
-def refresh_treeview(treeview, nome_treeview, api_get_string):
+def refresh_treeview(treeview, nome_treeview, api_get_string, api_get_string2 = None, api_get_string3 = None):
     for riga in treeview.get_children():
         treeview.delete(riga)
 
@@ -162,7 +172,27 @@ def refresh_treeview(treeview, nome_treeview, api_get_string):
                 valori.append(valore[colonna])
             treeview.insert('', 'end',
                             values=valori)
-    if nome_treeview == 'tipologia_treeview':
+
+
+    if nome_treeview == 'articoli_per_listino_treeview':
+        #nomi_colonne: 'aggiungi_rimuovi', 'id', 'nome', 'nome_breve', 'prezzo', 'sfondo',
+        # 'tipologia', 'nome_tipologia', 'sfondo_tipologia'
+        valori_articoli = api_get(api_get_string)
+        valori_articoli_listino = api_get(api_get_string2)
+        valori_articoli_listino_tipologia = api_get(api_get_string3)
+
+        for articolo in valori_articoli:
+            pass
+
+        for valore in api_get(api_get_string):
+            valori = ['-']
+            for colonna in nomi_colonne[1:]:
+                valori.append(valore[colonna])
+            treeview.insert('', 'end',
+                            values=valori)
+
+
+    if nome_treeview == 'tipologie_treeview':
         refresh_colori(treeview)
 def on_select_colore(treeview, id_riga, nome_colonna):
     colore = tk.StringVar()
@@ -173,6 +203,7 @@ def on_select_colore(treeview, id_riga, nome_colonna):
     for column in treeview['columns'][1:]:
         data_to_send[column] = treeview.item(id_riga, 'values')[treeview['columns'].index(column)]
     api_put('/tipologie/' + str(treeview.item(id_riga, 'values')[1]), data_to_send)
+    #TODO da ricontrollare
     refresh_colori(treeview)
 
 def refresh_colori(treeview):
