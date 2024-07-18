@@ -55,13 +55,12 @@ class TestCassaFunctions(unittest.TestCase):
         articolo = {'id': 1, 'nome': 'SPAGHETTI AL POMODORO', 'nome_breve': 'SPAGHETTI POMODORO', 'prezzo': '5.50',
                     'sfondo': None, 'tipologia': 1, 'nome_tipologia': 'Primi', 'sfondo_tipologia': None}
         id_listino = 1
-        bill = self.bill
-        bill_formatted_text = self.bill_formatted_text
+
         self.treeview.insert = Mock()
 
-        insert_order(self.treeview, articolo, id_listino, bill, bill_formatted_text)
+        insert_order(self.treeview, articolo, id_listino, self.bill, self.bill_formatted_text)
 
-        self.assertEqual(self.treeview.insert.call_count, 1)  # Check if insert was called
+        self.treeview.insert.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
