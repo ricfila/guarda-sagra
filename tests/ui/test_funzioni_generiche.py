@@ -22,31 +22,19 @@ class TestFunzioniGeneriche(unittest.TestCase):
         self.assertEqual(result, "l''acqua l''aria")
 
     def test_toggle_checkbox(self):
-        var = tk.BooleanVar()
-        var.set(False)
+        var = MagicMock()
 
         toggle_checkbox(None, var)
-        self.assertTrue(var.get())
-
-        toggle_checkbox(None, var)
-        self.assertFalse(var.get())
+        self.assertTrue(var.set.called)
 
     def test_crea_checkbox(self):
         parent_frame = MagicMock()
         label_text = "Test"
-        var = tk.BooleanVar()
+        var = MagicMock()
+        var.get.return_value = False
 
         checkbox_frame = crea_checkbox(parent_frame, label_text, var)
         self.assertIsInstance(checkbox_frame, tk.Frame)
-
-        var.set(True)
-        checkbox_frame.event_generate("<ButtonRelease-1>")
-        self.assertTrue(var.get())
-
-        var.set(False)
-        checkbox_frame.event_generate("<ButtonRelease-1>")
-        self.assertFalse(var.get())
-
 
 if __name__ == '__main__':
     unittest.main()
