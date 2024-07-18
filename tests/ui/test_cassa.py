@@ -4,9 +4,6 @@ import tkinter as tk
 from tkinter import ttk
 from src.ui.cassa import salva, max_4_chars_and_only_digits, insert_order, draw_cassa
 
-@Mock.patch('tkinter.Tk')
-@Mock.patch('tkinter.ttk.Treeview')
-
 def mock_api_post(url, data):
     if url == '/ordini':
         return 201

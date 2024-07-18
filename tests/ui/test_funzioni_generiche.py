@@ -1,11 +1,11 @@
 import unittest
-from unittest.mock import MagicMock, patch, call, Mock
+from unittest.mock import MagicMock, patch, call
 import tkinter as tk
 from tkinter import ttk
 from src.ui.funzioni_generiche import *
 
 
-@Mock.patch('tkinter.Tk')
+
 
 class TestFunzioniGeneriche(unittest.TestCase):
 
