@@ -31,7 +31,7 @@ class TestProfilesLogic(unittest.TestCase):
     def test_profile_selection(self, MockMainWindow):
         mock_profiles_window = MagicMock()
         profile = {'nome': 'admin'}
-        logout_value = tk.BooleanVar
+        logout_value = MagicMock()
         logout_value.set.return_value = False
 
         with patch('tkinter.BooleanVar', return_value=logout_value):

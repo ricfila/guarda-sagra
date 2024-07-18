@@ -29,22 +29,20 @@ class TestCassaFunctions(unittest.TestCase):
     def setUp(self):
         self.root = MagicMock()
         self.treeview = MagicMock()
-        self.bill = tk.DoubleVar()
-        self.bill_formatted_text = tk.StringVar()
+        self.bill = MagicMock()
+        self.bill_formatted_text = MagicMock()
 
     def tearDown(self):
         self.root.destroy()
 
     def test_salva(self):
         valori_ordine = [('item1', 'valore1'), ('item2', 'valore2')]
-        bill = self.bill
-        bill_formatted_text = self.bill_formatted_text
+        with patch('src.ui.cassa.update_bill') as mock_update_bill:
+            with patch('src.ui.cassa.api_post', side_effect=mock_api_post):
+                salva(self.treeview, valori_ordine, self.bill, self.bill_formatted_text)
 
-        with patch('src.ui.cassa.api_post', side_effect=mock_api_post):
-            salva(self.treeview, valori_ordine, bill, bill_formatted_text)
+        mock_update_bill.assert_called_once()
 
-        # Assertions
-        self.assertEqual(len(self.treeview.get_children()), 0)
 
     def test_max_4_chars_and_only_digits(self):
         self.assertTrue(max_4_chars_and_only_digits('1234'))  # Valid input
@@ -57,8 +55,8 @@ class TestCassaFunctions(unittest.TestCase):
         id_listino = 1
 
         self.treeview.insert = Mock()
-
-        insert_order(self.treeview, articolo, id_listino, self.bill, self.bill_formatted_text)
+        with patch('src.ui.cassa.update_bill') as mock_update_bill:
+            insert_order(self.treeview, articolo, id_listino, self.bill, self.bill_formatted_text)
 
         self.treeview.insert.assert_called_once()
 
