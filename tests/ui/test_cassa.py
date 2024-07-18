@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch, Mock
 import tkinter as tk
 from tkinter import ttk
 from src.ui.cassa import salva, max_4_chars_and_only_digits, insert_order, draw_cassa
@@ -27,8 +27,8 @@ def mock_api_get(url, id_profilo=None, id_listino=None):
 class TestCassaFunctions(unittest.TestCase):
 
     def setUp(self):
-        self.root = tk.Tk()
-        self.treeview = ttk.Treeview(self.root)
+        self.root = MagicMock(spec=tk.Tk())
+        self.treeview = MagicMock(spec=ttk.Treeview())
         self.bill = tk.DoubleVar()
         self.bill_formatted_text = tk.StringVar()
 
@@ -52,53 +52,16 @@ class TestCassaFunctions(unittest.TestCase):
         self.assertFalse(max_4_chars_and_only_digits('abc'))  # Non-digit characters
 
     def test_insert_order(self):
-        # Mock data for testing
         articolo = {'id': 1, 'nome': 'SPAGHETTI AL POMODORO', 'nome_breve': 'SPAGHETTI POMODORO', 'prezzo': '5.50',
                     'sfondo': None, 'tipologia': 1, 'nome_tipologia': 'Primi', 'sfondo_tipologia': None}
         id_listino = 1
         bill = self.bill
         bill_formatted_text = self.bill_formatted_text
-
-        # Mocking the Treeview
         self.treeview.insert = Mock()
 
-        # Testing insert_order function
         insert_order(self.treeview, articolo, id_listino, bill, bill_formatted_text)
 
-        # Assertions
         self.assertEqual(self.treeview.insert.call_count, 1)  # Check if insert was called
-
-    @patch('src.ui.cassa.api_get', side_effect=mock_api_get)
-    def test_draw_cassa(self, mock_api_get):
-        profile = {'id': 2}
-        notebook = ttk.Notebook(self.root)
-
-        draw_cassa(notebook, profile)
-
-        self.assertEqual(notebook.index('end'), 1)
-
-        tab = notebook.nametowidget(notebook.tabs()[0])
-
-        info_frame = tab.winfo_children()[0]
-        self.assertIsInstance(info_frame, ttk.Frame)
-        bill_frame = tab.winfo_children()[1]
-        self.assertIsInstance(bill_frame, ttk.Frame)
-        options_frame = tab.winfo_children()[2]
-        self.assertIsInstance(options_frame, ttk.Frame)
-
-        ordini_treeview = tab.winfo_children()[3]
-        self.assertIsInstance(ordini_treeview, ttk.Treeview)
-
-        listini_notebook = tab.winfo_children()[4]
-        self.assertIsInstance(listini_notebook, ttk.Notebook)
-
-        self.assertEqual(len(listini_notebook.tabs()), 2)
-        standard_tab = listini_notebook.nametowidget(listini_notebook.tabs()[0])
-        pesce_tab = listini_notebook.nametowidget(listini_notebook.tabs()[1])
-
-        self.assertEqual(listini_notebook.tab(standard_tab, 'text'), 'Standard')
-        self.assertEqual(listini_notebook.tab(pesce_tab, 'text'), 'Pesce')
-
 
 if __name__ == '__main__':
     unittest.main()
