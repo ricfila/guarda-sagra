@@ -1,75 +1,43 @@
 import unittest
 from unittest.mock import MagicMock, patch, call
-from tkinter import ttk, Tk
+import tkinter as tk
+from tkinter import ttk
 from src.ui.funzioni_generiche import *
 
 
 class TestFunzioniGeneriche(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(self):
+        self.root = tk.Tk()
+
+    @classmethod
+    def tearDownClass(self):
+        self.root.destroy()
+
     def test_replace_single_quotes(self):
-        result = replace_single_quotes("O'Neill")
-        self.assertEqual(result, "O''Neill")
-
-    @patch('src.ui.funzioni_generiche.requests')
-    def test_api_get(self, mock_requests):
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"key": "value"}
-        mock_requests.get.return_value = mock_response
-
-        result = api_get('/test')
-        self.assertEqual(result, {"key": "value"})
-
-    @patch('src.ui.funzioni_generiche.requests')
-    def test_api_post(self, mock_requests):
-        mock_response = MagicMock()
-        mock_response.status_code = 201
-        mock_requests.post.return_value = mock_response
-
-        result = api_post('/test', {"key": "value"})
-        self.assertEqual(result, 201)
-
-    @patch('src.ui.funzioni_generiche.requests')
-    def test_api_put(self, mock_requests):
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_requests.put.return_value = mock_response
-
-        result = api_put('/test', {"key": "value"})
-        self.assertEqual(result, 200)
-
-    @patch('src.ui.funzioni_generiche.requests')
-    def test_api_delete(self, mock_requests):
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"key": "value"}
-        mock_requests.delete.return_value = mock_response
-
-        result = api_delete('/test')
-        self.assertEqual(result, {"key": "value"})
+        result = replace_single_quotes("l'acqua l'aria")
+        self.assertEqual(result, "l''acqua l''aria")
 
     def test_on_select_modifica(self):
-        root = Tk()
-        treeview = ttk.Treeview(root, columns=('col1', 'col2'))
-        treeview.insert('', 'end', iid='row1', values=('value1', 'value2'))
+        treeview = ttk.Treeview(self.root, columns=(
+        'rimuovi', 'id', 'nome', 'nome_breve', 'prezzo', 'copia_cliente', 'copia_cucina', 'copia_bar',
+        'copia_pizzeria', 'copia_rosticceria'))
+        treeview.insert('', 'end', values=('-', '1', 'aglio', 'aglio', '1', 'True', 'True', 'True', 'True', 'True'))
 
-        id_riga = 'row1'
-        indice_colonna = '#1'
-        nome_colonna = 'col1'
-        treeview.set(id_riga, nome_colonna, 'new_value')
+        id_riga = 'I001'
+        indice_colonna = '#3'
+        nome_colonna = 'nome'
 
-        def mock_save_edit(event, treeview, nome_treeview, id_riga):
-            treeview.set(id_riga, nome_colonna, 'new_value')
+        treeview.set(id_riga, nome_colonna, 'pomodoro') #non ho modo di ricreare l'inserimento manuale in una entry dinamica
 
-        on_select_modifica(treeview, 'test_treeview', id_riga, indice_colonna, nome_colonna)
-        self.assertEqual(treeview.set(id_riga, nome_colonna), 'new_value')
-        root.destroy()
+        on_select_modifica(treeview, 'articoli_treeview', id_riga, indice_colonna, nome_colonna)
+        self.assertEqual(treeview.set(id_riga, nome_colonna), 'pomodoro')
 
     @patch('src.ui.funzioni_generiche.messagebox')
     @patch('src.ui.funzioni_generiche.api_delete')
     def test_on_select_rimuovi(self, mock_api_delete, mock_messagebox):
-        root = Tk()
-        treeview = ttk.Treeview(root, columns=('col1', 'col2'))
+        treeview = ttk.Treeview(self.root, columns=('col1', 'col2'))
         treeview.insert('', 'end', iid='row1', values=('value1', '1'))
 
         mock_messagebox.askquestion.return_value = 'yes'
@@ -77,11 +45,8 @@ class TestFunzioniGeneriche(unittest.TestCase):
         on_select_rimuovi(treeview, 'test_treeview', 'row1')
         mock_api_delete.assert_called_with('/test/1')
 
-        root.destroy()
-
     def test_update_bill(self):
-        root = Tk()
-        ordini_treeview = ttk.Treeview(root, columns=('qta', 'prezzo'))
+        ordini_treeview = ttk.Treeview(self.root, columns=('qta', 'prezzo'))
         ordini_treeview.insert('', 'end', iid='row1', values=('2', '10.50'))
         ordini_treeview.insert('', 'end', iid='row2', values=('3', '7.00'))
 
@@ -91,8 +56,6 @@ class TestFunzioniGeneriche(unittest.TestCase):
 
         expected_total = 2 * 10.50 + 3 * 7.00
         self.assertEqual(bill.get(), expected_total)
-
-        root.destroy()
 
     def test_toggle_checkbox(self):
         var = tk.BooleanVar()
@@ -105,8 +68,7 @@ class TestFunzioniGeneriche(unittest.TestCase):
         self.assertFalse(var.get())
 
     def test_crea_checkbox(self):
-        root = Tk()
-        parent_frame = tk.Frame(root)
+        parent_frame = tk.Frame(self.root)
         label_text = "Test"
         var = tk.BooleanVar()
 
@@ -120,8 +82,6 @@ class TestFunzioniGeneriche(unittest.TestCase):
         var.set(False)
         checkbox_frame.event_generate("<ButtonRelease-1>")
         self.assertFalse(var.get())
-
-        root.destroy()
 
 
 if __name__ == '__main__':

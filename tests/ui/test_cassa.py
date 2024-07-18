@@ -3,14 +3,6 @@ from unittest.mock import Mock, patch
 import tkinter as tk
 from tkinter import ttk
 from src.ui.cassa import salva, max_4_chars_and_only_digits, insert_order, draw_cassa
-from src import config
-import threading
-from src.api import init_thread
-
-config.init()
-thread = threading.Thread(target=init_thread, daemon=True)
-thread.start()
-
 
 def mock_api_post(url, data):
     if url == '/ordini':
@@ -35,7 +27,6 @@ def mock_api_get(url, id_profilo=None, id_listino=None):
 class TestCassaFunctions(unittest.TestCase):
 
     def setUp(self):
-        # Mocking necessary components like Treeview, etc.
         self.root = tk.Tk()
         self.treeview = ttk.Treeview(self.root)
         self.bill = tk.DoubleVar()
