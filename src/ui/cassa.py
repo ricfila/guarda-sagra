@@ -168,11 +168,16 @@ def draw_cassa(notebook, profile):
 
 
             for i, articolo in enumerate(articoli_per_tipologia):
-                #if articolo[sfondo] == hex: #TODO
-                #    colore = 'black'
-                button = ttk.Button(frame_buttons, text=articolo['nome_breve'],
+                if articolo['sfondo'] is not None:
+                    bg_color = articolo['sfondo']
+                elif articolo['sfondo_tipologia'] is not None:
+                    bg_color = articolo['sfondo_tipologia']
+                else:
+                    bg_color = "SystemButtonFace"  # Default background
+                button = tk.Button(frame_buttons, text=articolo['nome_breve'],  bg=bg_color,
                                     command=functools.partial(insert_order, ordini_treeview, articolo, item_listino['id'], bill, bill_formatted_text))
                 button.grid(row=i // 6, column=i % 6, padx=5, pady=5, sticky='w')
+
             canvas.update_idletasks()
             canvas.configure(scrollregion=canvas.bbox("all"))
     # gestisco bill_frame
