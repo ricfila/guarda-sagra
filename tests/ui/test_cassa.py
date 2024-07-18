@@ -3,11 +3,9 @@ from unittest.mock import Mock, patch
 import tkinter as tk
 from tkinter import ttk
 from src.ui.cassa import salva, max_4_chars_and_only_digits, insert_order, draw_cassa
-import os
 
-if os.environ.get('DISPLAY','') == '':
-    print('no display found. Using :0.0')
-    os.environ.__setitem__('DISPLAY', ':0.0')
+@Mock.patch('tkinter.Tk')
+@Mock.patch('tkinter.ttk.Treeview')
 
 def mock_api_post(url, data):
     if url == '/ordini':

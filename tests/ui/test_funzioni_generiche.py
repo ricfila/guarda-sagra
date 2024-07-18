@@ -1,13 +1,11 @@
 import unittest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch, call, Mock
 import tkinter as tk
 from tkinter import ttk
 from src.ui.funzioni_generiche import *
-import os
 
-if os.environ.get('DISPLAY','') == '':
-    print('no display found. Using :0.0')
-    os.environ.__setitem__('DISPLAY', ':0.0')
+
+@Mock.patch('tkinter.Tk')
 
 class TestFunzioniGeneriche(unittest.TestCase):
 

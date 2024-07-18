@@ -1,8 +1,10 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 import tkinter as tk
 from tkinter import ttk
 from src.profiles_logic import open_profiles_window, profiles_choice, profile_selection
+
+@Mock.patch('tkinter.Tk')
 
 class TestProfilesLogic(unittest.TestCase):
 
