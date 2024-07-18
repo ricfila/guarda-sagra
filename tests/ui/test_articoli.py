@@ -3,6 +3,11 @@ from unittest.mock import patch, MagicMock
 import tkinter as tk
 from tkinter import ttk
 from src.ui.articoli import add_to_treeview, add_tipologia
+import os
+
+if os.environ.get('DISPLAY','') == '':
+    print('no display found. Using :0.0')
+    os.environ.__setitem__('DISPLAY', ':0.0')
 
 
 class TestArticoliModule(unittest.TestCase):
