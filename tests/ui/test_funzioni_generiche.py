@@ -11,7 +11,7 @@ class TestFunzioniGeneriche(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.root = MagicMock(spec=tk.Tk())
+        self.root = MagicMock()
 
     @classmethod
     def tearDownClass(self):
@@ -32,7 +32,7 @@ class TestFunzioniGeneriche(unittest.TestCase):
         self.assertFalse(var.get())
 
     def test_crea_checkbox(self):
-        parent_frame = MagicMock(spec=tk.Frame())
+        parent_frame = MagicMock()
         label_text = "Test"
         var = tk.BooleanVar()
 

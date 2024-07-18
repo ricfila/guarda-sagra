@@ -27,8 +27,8 @@ def mock_api_get(url, id_profilo=None, id_listino=None):
 class TestCassaFunctions(unittest.TestCase):
 
     def setUp(self):
-        self.root = MagicMock(spec=tk.Tk())
-        self.treeview = MagicMock(spec=ttk.Treeview())
+        self.root = MagicMock()
+        self.treeview = MagicMock()
         self.bill = tk.DoubleVar()
         self.bill_formatted_text = tk.StringVar()
 
